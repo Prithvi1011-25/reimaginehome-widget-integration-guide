@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ReimagineHome Widget · Integration Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ---------- Tokens ---------- */
+:root {
+  --bg: #FAFAF7;
+  --bg-soft: #F2F1EC;
+  --bg-code: #F4F3EE;
+  --surface: #FFFFFF;
+  --text: #14201A;
+  --text-muted: #5E6B62;
+  --text-soft: #8A958E;
+  --border: #E5E4DC;
+  --border-strong: #D1D0C5;
+  --accent: #1F6F4A;
+  --accent-soft: #E8F1EC;
+  --accent-strong: #155236;
+  --warn-bg: #FBF4DC;
+  --warn-border: #E5D38A;
+  --warn-text: #6B5410;
+  --code-text: #1F2A24;
+  --code-keyword: #A04B12;
+  --code-string: #1F6F4A;
+  --code-comment: #8A958E;
+  --code-fn: #2A4B8F;
+  --shadow: 0 1px 0 rgba(20, 32, 26, 0.04);
+  --radius: 6px;
+  --maxw-content: 760px;
+}
+[data-theme="dark"] {
+  --bg: #0F1411;
+  --bg-soft: #181E1A;
+  --bg-code: #111713;
+  --surface: #151B17;
+  --text: #E8ECE8;
+  --text-muted: #9AA39E;
+  --text-soft: #6E7873;
+  --border: #242B27;
+  --border-strong: #2F3833;
+  --accent: #6DD0A1;
+  --accent-soft: #1A2B22;
+  --accent-strong: #95E0B8;
+  --warn-bg: #2A2310;
+  --warn-border: #5E4F1A;
+  --warn-text: #E5D38A;
+  --code-text: #D8DDD9;
+  --code-keyword: #E8A876;
+  --code-string: #92D6AE;
+  --code-comment: #6E7873;
+  --code-fn: #8FB0E8;
+}
+
+/* ---------- Reset ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+code, pre { font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace; }
+button { font-family: inherit; cursor: pointer; }
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+.brand-mark {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  background: var(--accent);
+  display: grid;
+  place-items: center;
+  color: white;
+  font-family: 'Instrument Serif', serif;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1;
+}
+.brand-sub {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 13px;
+  padding-left: 12px;
+  margin-left: 4px;
+  border-left: 1px solid var(--border);
+}
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.version-pill {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border: 1px solid var(--warn-border);
+}
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--border-strong); }
+.icon-btn svg { width: 16px; height: 16px; }
+.menu-btn { display: none; }
+
+/* ---------- Layout ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 220px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  padding: 32px 24px 48px 24px;
+  border-right: 1px solid var(--border);
+}
+.sidebar-section {
+  margin-bottom: 24px;
+}
+.sidebar-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin: 0 0 8px 0;
+  padding: 0 8px;
+}
+.sidebar a {
+  display: block;
+  padding: 5px 8px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  border-radius: 4px;
+  margin-bottom: 1px;
+}
+.sidebar a:hover {
+  background: var(--bg-soft);
+  color: var(--text);
+  text-decoration: none;
+}
+.sidebar a.active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 500;
+}
+[data-theme="dark"] .sidebar a.active { color: var(--accent); }
+
+/* ---------- Main content ---------- */
+.main {
+  padding: 48px 56px 120px 56px;
+  min-width: 0;
+}
+.content {
+  max-width: var(--maxw-content);
+}
+
+/* ---------- Right rail ---------- */
+.rail {
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  padding: 48px 24px;
+  border-left: 1px solid var(--border);
+}
+.rail-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin: 0 0 12px 0;
+}
+.rail a {
+  display: block;
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-left: 2px solid transparent;
+  padding-left: 12px;
+  margin-left: -2px;
+}
+.rail a:hover { color: var(--text); text-decoration: none; }
+.rail a.active {
+  color: var(--accent-strong);
+  border-left-color: var(--accent);
+  font-weight: 500;
+}
+[data-theme="dark"] .rail a.active { color: var(--accent); }
+
+/* ---------- Typography ---------- */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 16px 0;
+}
+.hero-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 56px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px 0;
+  color: var(--text);
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+.hero-lede {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0 0 32px 0;
+  max-width: 620px;
+}
+h2 {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin: 72px 0 16px 0;
+  color: var(--text);
+  scroll-margin-top: 80px;
+}
+h2:first-child { margin-top: 0; }
+h3 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 36px 0 12px 0;
+  color: var(--text);
+  scroll-margin-top: 80px;
+}
+h4 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 24px 0 8px 0;
+  color: var(--text);
+}
+p { margin: 0 0 16px 0; color: var(--text); }
+ul, ol { margin: 0 0 16px 0; padding-left: 22px; color: var(--text); }
+li { margin-bottom: 6px; }
+strong { font-weight: 600; color: var(--text); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 56px 0;
+}
+
+/* ---------- Section intro ---------- */
+.section-intro {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* ---------- Hero CTA row ---------- */
+.cta-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover { background: var(--accent-strong); text-decoration: none; }
+[data-theme="dark"] .btn-primary { color: #0F1411; }
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+.btn-secondary:hover { border-color: var(--border-strong); text-decoration: none; }
+
+/* ---------- Cards ---------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.card-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title .num {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: var(--accent);
+  font-weight: 400;
+  line-height: 1;
+}
+.card p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ---------- Architecture diagram ---------- */
+.diagram-wrap {
+  margin: 24px 0 12px 0;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow-x: auto;
+}
+.diagram-caption {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block {
+  position: relative;
+  margin: 16px 0 24px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-code);
+  overflow: hidden;
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-soft);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.code-filename {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.copy-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+.copy-btn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+.copy-btn.copied { color: var(--accent); }
+.copy-btn svg { width: 12px; height: 12px; }
+pre {
+  margin: 0;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--code-text);
+}
+pre code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+.tok-k { color: var(--code-keyword); }
+.tok-s { color: var(--code-string); }
+.tok-c { color: var(--code-comment); font-style: italic; }
+.tok-f { color: var(--code-fn); }
+.tok-n { color: var(--text); font-weight: 500; }
+
+/* Inline code */
+p code, li code, td code {
+  font-size: 0.88em;
+  padding: 1px 6px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+}
+
+/* ---------- Placeholder callout ---------- */
+.placeholder {
+  display: inline-block;
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border: 1px dashed var(--warn-border);
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+/* ---------- Callouts ---------- */
+.callout {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  margin: 20px 0;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.callout-info { border-left: 3px solid var(--accent); background: var(--accent-soft); }
+.callout-warn { border-left: 3px solid var(--warn-border); background: var(--warn-bg); color: var(--warn-text); }
+.callout-warn strong { color: var(--warn-text); }
+.callout-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.callout p { margin: 0; }
+.callout-info p { color: var(--text); }
+[data-theme="dark"] .callout-info p { color: var(--text); }
+
+/* ---------- Tables ---------- */
+.table-wrap {
+  margin: 16px 0 24px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+th, td {
+  text-align: left;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+th {
+  background: var(--bg-soft);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+tr:last-child td { border-bottom: 0; }
+td code { white-space: nowrap; }
+.col-name { width: 26%; }
+.col-type { width: 18%; color: var(--text-muted); }
+.col-req { width: 14%; }
+.req-yes { color: var(--accent); font-weight: 500; }
+.req-no { color: var(--text-soft); }
+
+/* ---------- Comparison table ---------- */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 24px 0;
+}
+.compare-col {
+  background: var(--surface);
+  padding: 20px;
+}
+.compare-head {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--text);
+  margin: 0 0 4px 0;
+}
+.compare-sub {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+.compare-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13.5px;
+}
+.compare-col li {
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  color: var(--text-muted);
+}
+.compare-col li:before {
+  content: "—";
+  color: var(--accent);
+}
+
+/* ---------- Tabs ---------- */
+.tabs {
+  margin: 24px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.tab-list {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-soft);
+  overflow-x: auto;
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 12px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  position: relative;
+  top: 1px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  background: var(--surface);
+}
+.tab-panel {
+  display: none;
+  padding: 24px 24px 8px 24px;
+}
+.tab-panel.active { display: block; }
+.tab-panel h4:first-child { margin-top: 0; }
+
+/* ---------- Method toggle (segmented control inside tabs) ---------- */
+.method-toggle {
+  display: inline-flex;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  margin: 0 0 28px 0;
+  gap: 2px;
+}
+.method-toggle button {
+  padding: 6px 16px;
+  font-size: 12.5px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+.method-toggle button:hover { color: var(--text); }
+.method-toggle button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(20,32,26,0.06);
+}
+[data-theme="dark"] .method-toggle button.active {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.method-content { display: none; }
+.method-content.active { display: block; }
+.method-content h4:first-child { margin-top: 0; }
+.method-note {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  background: var(--bg-soft);
+  border-left: 3px solid var(--border-strong);
+  padding: 10px 14px;
+  border-radius: 0 4px 4px 0;
+  margin: 0 0 24px 0;
+}
+
+/* ---------- Step list (numbered) ---------- */
+.steps {
+  counter-reset: step;
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+}
+.steps > li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 44px;
+  margin-bottom: 28px;
+}
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -2px;
+  width: 30px;
+  height: 30px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 17px;
+  font-weight: 400;
+}
+[data-theme="dark"] .steps > li::before { color: var(--accent); }
+.steps > li > p:first-child {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  margin-top: 96px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-soft);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 240px minmax(0, 1fr); }
+  .rail { display: none; }
+  .main { padding: 40px 40px 96px 40px; }
+}
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 280px;
+    background: var(--bg);
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    border-right: 1px solid var(--border);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .menu-btn { display: grid; }
+  .main { padding: 32px 20px 80px 20px; }
+  .hero-title { font-size: 38px; }
+  h2 { font-size: 28px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .compare { grid-template-columns: 1fr; }
+  .brand-sub { display: none; }
+}
+
+/* ---------- Scrollbar polish ---------- */
+.sidebar::-webkit-scrollbar, .rail::-webkit-scrollbar, pre::-webkit-scrollbar { width: 8px; height: 8px; }
+.sidebar::-webkit-scrollbar-thumb, .rail::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-track, .rail::-webkit-scrollbar-track, pre::-webkit-scrollbar-track { background: transparent; }
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== TOPBAR ==================== -->
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Toggle menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="brand">
+    <div class="brand-mark">R</div>
+    <span>ReimagineHome</span>
+    <span class="brand-sub">Widget Integration Guide</span>
+  </div>
+  <div class="topbar-right">
+    <span class="version-pill">v0.1 · Internal draft</span>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+      <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <p class="sidebar-label">Get oriented</p>
+      <a href="#overview">Overview</a>
+      <a href="#quick-start">Quick start</a>
+      <a href="#how-it-works">How the widget works</a>
+    </div>
+    <div class="sidebar-section">
+      <p class="sidebar-label">Before you integrate</p>
+      <a href="#requirements">Integration requirements</a>
+      <a href="#media-hosting">Media hosting &amp; CORS</a>
+    </div>
+    <div class="sidebar-section">
+      <p class="sidebar-label">Integrate</p>
+      <a href="#config-ref">Configuration reference</a>
+      <a href="#open-payload">The open() payload</a>
+    </div>
+    <div class="sidebar-section">
+      <p class="sidebar-label">Framework guides</p>
+      <a href="#framework-guides">All frameworks</a>
+    </div>
+    <div class="sidebar-section">
+      <p class="sidebar-label">Customize</p>
+      <a href="#branding">Styling &amp; branding</a>
+    </div>
+  </nav>
+
+  <!-- ==================== MAIN ==================== -->
+  <main class="main">
+    <div class="content">
+
+      <!-- ============ OVERVIEW ============ -->
+      <section id="overview">
+        <p class="eyebrow">Enterprise Integration Guide</p>
+        <h1 class="hero-title">A drop-in design tool for <em>any</em> property listing.</h1>
+        <p class="hero-lede">
+          The ReimagineHome widget is a self-contained interface partners embed in their app to let users restyle the rooms in a listing. It loads on demand as an overlay, talks directly to ReimagineHome's servers, and returns when the user is done. Two integration paths. One configuration model.
+        </p>
+        <div class="cta-row">
+          <a href="#quick-start" class="btn btn-primary">Quick start
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#how-it-works" class="btn btn-secondary">How it works</a>
+          <a href="#framework-guides" class="btn btn-secondary">Framework guides</a>
+        </div>
+
+      </section>
+
+      <!-- ============ QUICK START ============ -->
+      <section id="quick-start">
+        <h2>Quick start</h2>
+        <p class="section-intro">
+          Five steps to a working widget. Pick CDN if you want zero install; pick npm if you're in a React, Next, Vue, or Angular app. The shape of the steps is the same either way.
+        </p>
+
+        <ol class="steps">
+          <li>
+            <p>Request a publishable key</p>
+            <p>Email <a href="mailto:partners@reimaginehome.ai">partners@reimaginehome.ai</a> with your partner name and the domains the widget will load on. We'll provision a publishable key (format <code>ppk_live_xxx</code>) scoped to those origins.</p>
+          </li>
+          <li>
+            <p>Load the widget</p>
+            <p>Either drop the script tag on your page or install the package.</p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-filename">CDN</span>
+                <button class="copy-btn" data-copy>Copy</button>
+              </div>
+<pre><code>&lt;<span class="tok-k">script</span> <span class="tok-n">async</span>
+  <span class="tok-n">src</span>=<span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>
+  <span class="tok-n">data-public-key</span>=<span class="tok-s">"ppk_live_xxx"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-filename">npm</span>
+                <button class="copy-btn" data-copy>Copy</button>
+              </div>
+<pre><code>npm install reimaginehome-widget</code></pre>
+            </div>
+          </li>
+          <li>
+            <p>Configure it once on page load</p>
+            <p>Pass the publishable key and any persistent defaults — branding, theme, language. The widget keeps this until you reconfigure or destroy it.</p>
+          </li>
+          <li>
+            <p>Open it on user action</p>
+            <p>Call <code>await reihWidget.open({ media, mode })</code> with the media items you want the user to redesign. Per-launch config overrides are allowed here.</p>
+          </li>
+          <li>
+            <p>Close or destroy when done</p>
+            <p>Call <code>reihWidget.close()</code> to hide the modal while keeping the session warm, or <code>reihWidget.destroy()</code> to tear it down completely. Always destroy on route change in SPAs.</p>
+          </li>
+        </ol>
+
+        <div class="callout callout-info">
+          <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <p>Skip ahead to the <a href="#framework-guides">framework guides</a> for the exact code your stack needs.</p>
+        </div>
+      </section>
+
+      <!-- ============ HOW IT WORKS ============ -->
+      <section id="how-it-works">
+        <h2>How the widget works</h2>
+        <p class="section-intro">
+          The package you install is a small loader. When you call <code>open()</code>, the loader creates a session with the ReimagineHome backend and mounts a hosted iframe app over your page. The heavy UI runs in the iframe, which means updates roll out without you having to republish anything. Your app's role is to deliver the loader, configure it once, and invoke it on demand.
+        </p>
+
+        <div class="diagram-wrap">
+          <p class="diagram-caption">Both integration paths converge on the same loader. The loader creates a session and mounts the hosted iframe app.</p>
+          <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; display:block;" aria-label="Widget architecture diagram">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="var(--text-muted)"/>
+              </marker>
+              <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+              </marker>
+            </defs>
+
+            <!-- Two paths source -->
+            <g>
+              <rect x="20" y="30" width="180" height="60" rx="6" fill="var(--bg-soft)" stroke="var(--border-strong)"/>
+              <text x="110" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="var(--text)">CDN script tag</text>
+              <text x="110" y="74" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--text-muted)">&lt;script src="widget.js"&gt;</text>
+            </g>
+            <g>
+              <rect x="20" y="270" width="180" height="60" rx="6" fill="var(--bg-soft)" stroke="var(--border-strong)"/>
+              <text x="110" y="295" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="var(--text)">npm package</text>
+              <text x="110" y="314" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--text-muted)">import { reihWidget }</text>
+            </g>
+
+            <!-- Converge into partner app -->
+            <path d="M 200 60 Q 250 60 270 130 L 290 160" stroke="var(--text-muted)" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+            <path d="M 200 300 Q 250 300 270 230 L 290 200" stroke="var(--text-muted)" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+            <!-- Partner app -->
+            <g>
+              <rect x="290" y="140" width="180" height="80" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="380" y="165" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="var(--text)">Partner app</text>
+              <text x="380" y="184" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" fill="var(--text-muted)">Configures loader</text>
+              <text x="380" y="200" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" fill="var(--text-muted)">Invokes on user action</text>
+            </g>
+
+            <!-- Arrow to widget overlay -->
+            <path d="M 470 180 L 530 180" stroke="var(--accent)" stroke-width="1.5" fill="none" marker-end="url(#arrow-accent)"/>
+            <text x="500" y="172" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="var(--accent)" font-style="italic">open()</text>
+
+            <!-- Widget overlay -->
+            <g>
+              <rect x="530" y="140" width="170" height="80" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="615" y="165" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="var(--accent-strong)">Loader (reihWidget)</text>
+              <text x="615" y="184" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" fill="var(--text-muted)">Creates session</text>
+              <text x="615" y="200" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" fill="var(--text-muted)">Mounts iframe · postMessage config</text>
+            </g>
+
+            <!-- Down arrow to ReimagineHome backend -->
+            <path d="M 615 220 L 615 260" stroke="var(--text-muted)" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+            <path d="M 615 295 L 615 235" stroke="var(--text-muted)" stroke-width="1.5" fill="none" marker-end="url(#arrow)" stroke-dasharray="3 3"/>
+
+            <!-- ReimagineHome backend -->
+            <g>
+              <rect x="500" y="270" width="230" height="60" rx="6" fill="var(--bg-soft)" stroke="var(--border-strong)"/>
+              <text x="615" y="295" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="var(--text)">ReimagineHome backend</text>
+              <text x="615" y="314" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" fill="var(--text-muted)">Issues session · serves hosted UI</text>
+            </g>
+
+            <!-- Labels -->
+            <text x="110" y="20" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="var(--text-soft)" letter-spacing="0.05em">HOW IT ARRIVES</text>
+            <text x="380" y="130" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="var(--text-soft)" letter-spacing="0.05em">YOUR APP</text>
+            <text x="615" y="130" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="var(--text-soft)" letter-spacing="0.05em">RUNTIME</text>
+          </svg>
+        </div>
+
+        <h3>The three responsibilities</h3>
+        <p>Regardless of which integration path you take, your application has three responsibilities and the widget handles everything else.</p>
+        <ol>
+          <li><strong>Deliver the loader.</strong> Either include the script tag (CDN) or install and import the package (npm). Both produce the same handle to interact with.</li>
+          <li><strong>Configure once.</strong> Pass your publishable key and any persistent defaults at app boot. The loader retains this configuration for every subsequent invocation.</li>
+          <li><strong>Invoke on demand.</strong> When a user action should launch the widget, call <code>open()</code> with the per-launch payload — typically the media items and any overrides. The loader handles session creation and mounting from there.</li>
+        </ol>
+
+        <h3>Lifecycle of an invocation</h3>
+        <ol>
+          <li>Your application calls <code>open()</code> with the payload for this launch.</li>
+          <li>The loader requests a session from the ReimagineHome backend.</li>
+          <li>The loader mounts a hosted iframe app as a fixed-position overlay above your page and sends configuration via <code>postMessage</code> once the app signals ready.</li>
+          <li>The iframe app runs the full UI and communicates with the backend as needed.</li>
+          <li>When the user closes the widget, the overlay unmounts and focus returns to your page.</li>
+        </ol>
+
+        <p>Your page underneath is never navigated away from or mutated. The widget owns its own iframe, its own styles, and its own state. Closing it returns the user to exactly where they were.</p>
+      </section>
+
+      <!-- ============ REQUIREMENTS ============ -->
+      <section id="requirements">
+        <h2>Integration requirements</h2>
+        <p class="section-intro">
+          Three things to have lined up before you write integration code. Skipping any of these is the most common reason an integration looks fine in dev but breaks in production.
+        </p>
+
+        <h3>A publishable key, scoped to your domains</h3>
+        <p>The widget authenticates each session with a publishable key issued by ReimagineHome (format <code>ppk_live_xxx</code>). The key is bound to a list of allowed origins — requests from other origins are rejected. You can have separate keys for staging and production.</p>
+        <p>The key is safe to ship in client code. It's not a secret, but it is enforced against your origin list, so leaked keys can't be used from elsewhere.</p>
+
+        <h3 id="media-hosting">Publicly reachable media URLs</h3>
+        <p>The widget passes each <code>media[].image_url</code> to ReimagineHome's backend, which then fetches the images server-side. This means every URL you pass to <code>open()</code> must be reachable from the public internet — not from your CDN behind a VPN, not from <code>localhost</code>, and not bundled inside your app build.</p>
+
+        <div class="callout callout-warn">
+          <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <p><strong>Common pitfall.</strong> A bundler-resolved path like <code>/src/assets/listings/01.webp</code> works in your UI because your bundler resolves it. But that path is meaningless to ReimagineHome's backend. You need a parallel public URL — e.g. <code>https://yoursite.com/listings/01.webp</code> — and that's what you pass as <code>image_url</code>.</p>
+        </div>
+
+        <h4>Local development</h4>
+        <p>On <code>localhost</code>, browsers block direct calls to ReimagineHome's API on CORS grounds. Run a thin dev proxy that forwards <code>/api/reih/*</code> to the ReimagineHome API and you'll match production behavior. Most React, Next, and Vite dev servers support this in a few lines of config.</p>
+
+        <h3>A trigger that calls open()</h3>
+        <p>The widget doesn't insert buttons for you. You decide where the trigger appears in your UI and wire each one to a call to <code>await reihWidget.open({ media, mode })</code>. You can pass a single media item or many — the widget handles both.</p>
+      </section>
+
+      <!-- ============ CONFIG REFERENCE ============ -->
+      <section id="config-ref">
+        <h2>Configuration reference</h2>
+        <p class="section-intro">
+          Persistent configuration applied to every <code>open()</code> call until you reconfigure or destroy. Set via <code>reihWidget.configure()</code> (npm) or <code>window.reihWidgetConfig</code> + <code>data-public-key</code> (CDN).
+        </p>
+
+        <div class="callout callout-warn">
+          <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+          <p><strong>CDN exception.</strong> For CDN integrations, <code>public_key</code> is set on the script tag's <code>data-public-key</code> attribute, not inside <code>window.reihWidgetConfig</code>. All other fields below go in the config object.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-name">Key</th>
+                <th class="col-type">Type</th>
+                <th class="col-req">Required</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>public_key</code></td>
+                <td class="col-type">string</td>
+                <td class="col-req req-yes">Required</td>
+                <td>Your publishable key (format <code>ppk_live_xxx</code>). Bound to your allowed origins.</td>
+              </tr>
+              <tr>
+                <td><code>mode</code></td>
+                <td class="col-type">"simple" | "agentic"</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Widget flow mode. Defaults to <code>"simple"</code>. The <code>"agentic"</code> mode is available; documentation forthcoming.</td>
+              </tr>
+              <tr>
+                <td><code>branding</code></td>
+                <td class="col-type">WidgetBranding</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Logo, heading, colors, footer. See <a href="#branding">Styling &amp; branding</a> for the sub-fields.</td>
+              </tr>
+              <tr>
+                <td><code>theme</code></td>
+                <td class="col-type">WidgetTheme</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Colors, font, radius — visual tokens applied to the widget UI.</td>
+              </tr>
+              <tr>
+                <td><code>language</code></td>
+                <td class="col-type">WidgetLanguage[]</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Languages available in the in-widget switcher. Each entry: <code>{ code, name, nativeName }</code>.</td>
+              </tr>
+              <tr>
+                <td><code>sidebar_position</code></td>
+                <td class="col-type">"left" | "right"</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Which side of the overlay the sidebar mounts on.</td>
+              </tr>
+              <tr>
+                <td><code>user_id</code></td>
+                <td class="col-type">string</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Your own analytics identifier for the end user. Echoed in events.</td>
+              </tr>
+              <tr>
+                <td><code>session_id</code></td>
+                <td class="col-type">string</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Your own reference id for this user's flow. Distinct from the widget's internal session.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>language entries</h3>
+        <p>Each entry in the <code>language</code> array is an object describing one selectable UI language.</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-filename">WidgetLanguage</span>
+            <button class="copy-btn" data-copy>Copy</button>
+          </div>
+<pre><code><span class="tok-n">language</span>: [
+  { <span class="tok-n">code</span>: <span class="tok-s">"en-US"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United States)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (US)"</span> },
+  { <span class="tok-n">code</span>: <span class="tok-s">"pl-PL"</span>, <span class="tok-n">name</span>: <span class="tok-s">"Polish"</span>,                <span class="tok-n">nativeName</span>: <span class="tok-s">"Polski"</span> },
+]</code></pre>
+        </div>
+      </section>
+
+      <!-- ============ OPEN PAYLOAD ============ -->
+      <section id="open-payload">
+        <h2>The open() payload</h2>
+        <p class="section-intro">
+          <code>open()</code> is async and returns a Promise. The argument is per-launch — <code>media</code> is required, everything else overrides the persistent config for this launch only.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-name">Key</th>
+                <th class="col-type">Type</th>
+                <th class="col-req">Required</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>media</code></td>
+                <td class="col-type">MediaItem[]</td>
+                <td class="col-req req-yes">Required</td>
+                <td>Non-empty array. Each item is <code>{ image_url: string }</code>. Pass one for single-media flow, many for batch.</td>
+              </tr>
+              <tr>
+                <td><code>mode</code></td>
+                <td class="col-type">"simple" | "agentic"</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Override the configured mode for this launch.</td>
+              </tr>
+              <tr>
+                <td><code>branding</code></td>
+                <td class="col-type">WidgetBranding</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Override the persistent branding for this launch only. Useful for multi-brand portals.</td>
+              </tr>
+              <tr>
+                <td><code>theme</code></td>
+                <td class="col-type">WidgetTheme</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Override the persistent theme for this launch.</td>
+              </tr>
+              <tr>
+                <td><code>language</code></td>
+                <td class="col-type">WidgetLanguage[]</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Override the available languages for this launch.</td>
+              </tr>
+              <tr>
+                <td><code>sidebar_position</code></td>
+                <td class="col-type">"left" | "right"</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Override the sidebar position for this launch.</td>
+              </tr>
+              <tr>
+                <td><code>onError</code></td>
+                <td class="col-type">(err) =&gt; void</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Called with <code>{ message, code? }</code> when something goes wrong during the session.</td>
+              </tr>
+              <tr>
+                <td><code>onClose</code></td>
+                <td class="col-type">() =&gt; void</td>
+                <td class="col-req req-no">Optional</td>
+                <td>Called when the modal closes.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>MediaItem</h3>
+        <p>Each <code>media</code> entry is an object with at minimum an <code>image_url</code> pointing to a publicly reachable image.</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-filename">MediaItem</span>
+            <button class="copy-btn" data-copy>Copy</button>
+          </div>
+<pre><code><span class="tok-n">media</span>: [
+  { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/listings/ostoja-wilanow/01.webp"</span> },
+  { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/listings/ostoja-wilanow/02.webp"</span> },
+]</code></pre>
+        </div>
+
+        <h3>Other controls</h3>
+        <p>Two helpers cover the session lifecycle after <code>open()</code>.</p>
+        <ul>
+          <li><code>reihWidget.close()</code> — hide the modal, keep the underlying session warm. Reopening is fast.</li>
+          <li><code>reihWidget.destroy()</code> — tear down completely. Use on route change in SPAs, and before reopening with a different configuration.</li>
+        </ul>
+      </section>
+
+      <!-- ============ FRAMEWORK GUIDES ============ -->
+      <section id="framework-guides">
+        <h2>Framework guides</h2>
+        <p class="section-intro">
+          Concrete integration patterns for the four stacks we've tested. Each tab shows install, configure, open, and cleanup. Pick yours.
+        </p>
+
+        <div class="tabs" id="frameworkTabs">
+          <div class="tab-list" role="tablist">
+            <button class="tab-btn active" data-tab="react" role="tab">React / Vite</button>
+            <button class="tab-btn" data-tab="next" role="tab">Next.js</button>
+            <button class="tab-btn" data-tab="vanilla" role="tab">Vanilla JS / HTML</button>
+            <button class="tab-btn" data-tab="angular" role="tab">Angular</button>
+          </div>
+
+          <!-- ====== REACT ====== -->
+          <div class="tab-panel active" data-panel="react">
+            <div class="method-toggle">
+              <button data-method="npm">npm package</button>
+              <button data-method="cdn">CDN script</button>
+            </div>
+
+            <!-- =========== React × npm =========== -->
+            <div class="method-content" data-method="npm">
+            <h4>1. Install</h4>
+            <div class="code-block">
+              <div class="code-header"><span class="code-filename">terminal</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>npm install reimaginehome-widget</code></pre>
+            </div>
+
+            <div class="callout callout-warn">
+              <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+              <p><strong>Media hosting requirement.</strong> The ReimagineHome backend must be able to download your photos from public URLs. Host them in your site's <code>/public</code> folder, a CDN, or S3 — then pass absolute URLs via <code>resolveMediaUrl()</code>. See <a href="#media-hosting">Media hosting</a>.</p>
+            </div>
+
+            <h4>2. Shared widget config</h4>
+            <p>Both npm and CDN paths share one module for media, branding, language, and open helpers. The npm path puts <code>public_key</code> inside <code>configure()</code>.</p>
+            <div class="code-block">
+              <div class="code-header"><span class="code-filename">src/widgetConfig.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">export type</span> <span class="tok-n">ReihMediaItem</span> = { <span class="tok-n">image_url</span>: <span class="tok-k">string</span> };
+
+<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">'ppk_live_xxx'</span>; <span class="tok-c">// replace with your key</span>
+
+<span class="tok-k">export const</span> <span class="tok-n">LISTING_MEDIA</span>: <span class="tok-n">ReihMediaItem</span>[] = [
+  { <span class="tok-n">image_url</span>: <span class="tok-s">'https://yoursite.com/listings/01.webp'</span> },
+  { <span class="tok-n">image_url</span>: <span class="tok-s">'/images/apartment-building.png'</span> }, <span class="tok-c">// resolved to absolute URL</span>
+];
+
+<span class="tok-c">/** Local /images/* paths need a full URL for the widget backend */</span>
+<span class="tok-k">export function</span> <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">url</span>: <span class="tok-k">string</span>): <span class="tok-k">string</span> {
+  <span class="tok-k">if</span> (<span class="tok-n">url</span>.<span class="tok-f">startsWith</span>(<span class="tok-s">'/'</span>) &amp;&amp; <span class="tok-k">typeof</span> <span class="tok-k">window</span> !== <span class="tok-s">'undefined'</span>) {
+    <span class="tok-k">return</span> <span class="tok-s">`${window.location.origin}${url}`</span>;
+  }
+  <span class="tok-k">return</span> <span class="tok-n">url</span>;
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">resolveListingMedia</span>(<span class="tok-n">media</span> = <span class="tok-n">LISTING_MEDIA</span>) {
+  <span class="tok-k">return</span> <span class="tok-n">media</span>.<span class="tok-f">map</span>((<span class="tok-n">item</span>) =&gt; ({
+    ...<span class="tok-n">item</span>,
+    <span class="tok-n">image_url</span>: <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">item</span>.<span class="tok-n">image_url</span>),
+  }));
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">buildWidgetBranding</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">logo</span>: <span class="tok-s">'https://yoursite.com/logo.svg'</span>,
+    <span class="tok-n">text_primary</span>: <span class="tok-s">'#071121FF'</span>,
+    <span class="tok-n">text_secondary</span>: <span class="tok-s">'#1B232E'</span>,
+    <span class="tok-n">primary_color</span>: <span class="tok-s">'#3ED37A'</span>,
+    <span class="tok-n">heading</span>: <span class="tok-s">'Reimagine Your Space'</span>,
+    <span class="tok-n">sub_heading</span>: <span class="tok-s">'AI-powered room redesign'</span>,
+    <span class="tok-n">footer_text</span>: <span class="tok-s">''</span>,
+  };
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">buildWidgetLanguage</span>() {
+  <span class="tok-k">return</span> [
+    { <span class="tok-n">code</span>: <span class="tok-s">'en-US'</span>, <span class="tok-n">name</span>: <span class="tok-s">'English (United States)'</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">'English (US)'</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">'en-GB'</span>, <span class="tok-n">name</span>: <span class="tok-s">'English (United Kingdom)'</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">'English (UK)'</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">'pl-PL'</span>, <span class="tok-n">name</span>: <span class="tok-s">'Polish'</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">'Polski'</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">'es-ES'</span>, <span class="tok-n">name</span>: <span class="tok-s">'Spanish'</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">'Español'</span> },
+  ];
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">clearReihLoader</span>() {
+  <span class="tok-n">document</span>.<span class="tok-f">getElementById</span>(<span class="tok-s">'reih-host-loader'</span>)?.<span class="tok-f">remove</span>();
+}
+
+<span class="tok-k">export async function</span> <span class="tok-f">openReihWithMedia</span>(<span class="tok-n">widget</span>, <span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]) {
+  <span class="tok-f">clearReihLoader</span>();
+  <span class="tok-k">await</span> <span class="tok-n">widget</span>.<span class="tok-f">open</span>({
+    <span class="tok-n">media</span>: <span class="tok-n">media</span>.<span class="tok-f">map</span>((<span class="tok-n">item</span>) =&gt; ({
+      ...<span class="tok-n">item</span>,
+      <span class="tok-n">image_url</span>: <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">item</span>.<span class="tok-n">image_url</span>),
+    })),
+    <span class="tok-n">mode</span>: <span class="tok-s">'simple'</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+  });
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">buildNpmWidgetConfigureOptions</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">public_key</span>: <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+    <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(),
+    <span class="tok-n">mode</span>: <span class="tok-s">'simple'</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[reih] onError:'</span>, <span class="tok-n">err</span>),
+    <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onClose'</span>),
+  };
+}</code></pre>
+            </div>
+
+            <p><strong>Media shape.</strong> Each item is a flat <code>{ image_url: string }</code>. Use the same URL for your <code>&lt;img&gt;</code> and the widget API — resolve local paths before passing them to <code>open()</code>.</p>
+
+            <h4>3. Vite dev plugin (optional)</h4>
+            <p>The npm package ships with production URLs baked in. If you need local dev to hit the same backend as your CDN embed, add a transform plugin:</p>
+            <div class="code-block">
+              <div class="code-header"><span class="code-filename">vite.config.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">WIDGET_DEV_API_BASE_URL</span>, <span class="tok-n">WIDGET_DEV_APP_URL</span>,
+         <span class="tok-n">WIDGET_PROD_API_BASE_URL</span>, <span class="tok-n">WIDGET_PROD_APP_URL</span> } <span class="tok-k">from</span> <span class="tok-s">'./src/widgetEnv'</span>;
+
+<span class="tok-k">function</span> <span class="tok-f">reihWidgetDevEnv</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">name</span>: <span class="tok-s">'reih-widget-dev-env'</span>,
+    <span class="tok-f">transform</span>(<span class="tok-n">code</span>, <span class="tok-n">id</span>) {
+      <span class="tok-k">if</span> (!<span class="tok-n">id</span>.<span class="tok-f">includes</span>(<span class="tok-s">'node_modules/reimaginehome-widget/dist'</span>)) <span class="tok-k">return</span>;
+      <span class="tok-k">return</span> {
+        <span class="tok-n">code</span>: <span class="tok-n">code</span>
+          .<span class="tok-f">replaceAll</span>(<span class="tok-n">WIDGET_PROD_API_BASE_URL</span>, <span class="tok-n">WIDGET_DEV_API_BASE_URL</span>)
+          .<span class="tok-f">replaceAll</span>(<span class="tok-n">WIDGET_PROD_APP_URL</span>, <span class="tok-n">WIDGET_DEV_APP_URL</span>)
+          .<span class="tok-f">replace</span>(<span class="tok-s">'return "prod"'</span>, <span class="tok-s">'return "dev"'</span>),
+      };
+    },
+  };
+}</code></pre>
+            </div>
+
+            <h4>4. Configure and open from a page component</h4>
+            <p>Call <code>configure()</code> once on mount, <code>destroy()</code> on unmount. No pre-open destroy for npm — just guard double-clicks and call the shared open helper.</p>
+            <div class="code-block">
+              <div class="code-header"><span class="code-filename">src/pages/PackageIntegrationPage.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">useCallback</span>, <span class="tok-n">useEffect</span>, <span class="tok-n">useRef</span> } <span class="tok-k">from</span> <span class="tok-s">'react'</span>;
+<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">'reimaginehome-widget'</span>;
+<span class="tok-k">import</span> {
+  <span class="tok-n">buildNpmWidgetConfigureOptions</span>,
+  <span class="tok-n">clearReihLoader</span>,
+  <span class="tok-n">openReihWithMedia</span>,
+  <span class="tok-n">resolveListingMedia</span>,
+  <span class="tok-k">type</span> <span class="tok-n">ReihMediaItem</span>,
+} <span class="tok-k">from</span> <span class="tok-s">'../widgetConfig'</span>;
+
+<span class="tok-k">export function</span> <span class="tok-f">PackageIntegrationPage</span>() {
+  <span class="tok-k">const</span> <span class="tok-n">openingRef</span> = <span class="tok-f">useRef</span>(<span class="tok-k">false</span>);
+
+  <span class="tok-f">useEffect</span>(() =&gt; {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>(<span class="tok-f">buildNpmWidgetConfigureOptions</span>());
+    <span class="tok-k">return</span> () =&gt; {
+      <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+      <span class="tok-f">clearReihLoader</span>();
+    };
+  }, []);
+
+  <span class="tok-k">const</span> <span class="tok-n">openWidget</span> = <span class="tok-f">useCallback</span>(<span class="tok-k">async</span> (<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]) =&gt; {
+    <span class="tok-k">if</span> (<span class="tok-n">openingRef</span>.<span class="tok-n">current</span>) <span class="tok-k">return</span>;
+    <span class="tok-n">openingRef</span>.<span class="tok-n">current</span> = <span class="tok-k">true</span>;
+    <span class="tok-k">try</span> {
+      <span class="tok-k">await</span> <span class="tok-f">openReihWithMedia</span>(<span class="tok-n">reihWidget</span>, <span class="tok-n">media</span>);
+    } <span class="tok-k">catch</span> (<span class="tok-n">error</span>) {
+      <span class="tok-f">clearReihLoader</span>();
+      <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[package] Widget open failed:'</span>, <span class="tok-n">error</span>);
+    } <span class="tok-k">finally</span> {
+      <span class="tok-n">openingRef</span>.<span class="tok-n">current</span> = <span class="tok-k">false</span>;
+    }
+  }, []);
+
+  <span class="tok-k">const</span> <span class="tok-n">handleOpenAll</span> = <span class="tok-f">useCallback</span>(() =&gt; {
+    <span class="tok-k">void</span> <span class="tok-n">openWidget</span>(<span class="tok-f">resolveListingMedia</span>());
+  }, [<span class="tok-n">openWidget</span>]);
+
+  <span class="tok-k">const</span> <span class="tok-n">handleOpenSingle</span> = <span class="tok-f">useCallback</span>(
+    (<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>) =&gt; { <span class="tok-k">void</span> <span class="tok-n">openWidget</span>([<span class="tok-n">media</span>]); },
+    [<span class="tok-n">openWidget</span>],
+  );
+
+  <span class="tok-k">return</span> (
+    &lt;<span class="tok-k">ListingDemoPage</span>
+      <span class="tok-n">onOpenAll</span>={<span class="tok-n">handleOpenAll</span>}
+      <span class="tok-n">onOpenSingle</span>={<span class="tok-n">handleOpenSingle</span>}
+    /&gt;
+  );
+}</code></pre>
+            </div>
+
+            <h4>5. Per-photo trigger</h4>
+            <div class="code-block">
+              <div class="code-header"><span class="code-filename">src/MediaWithWidgetButton.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> <span class="tok-k">type</span> { <span class="tok-n">ReihMediaItem</span> } <span class="tok-k">from</span> <span class="tok-s">'./widgetConfig'</span>;
+
+<span class="tok-k">export function</span> <span class="tok-f">MediaWithWidgetButton</span>({ <span class="tok-n">media</span>, <span class="tok-n">alt</span>, <span class="tok-n">label</span>, <span class="tok-n">onOpen</span> }) {
+  <span class="tok-k">return</span> (
+    &lt;<span class="tok-k">div</span> <span class="tok-n">className</span>=<span class="tok-s">"media-frame"</span>&gt;
+      &lt;<span class="tok-k">img</span> <span class="tok-n">src</span>={<span class="tok-n">media</span>.<span class="tok-n">image_url</span>} <span class="tok-n">alt</span>={<span class="tok-n">alt</span>} /&gt;
+      &lt;<span class="tok-k">button</span> <span class="tok-n">type</span>=<span class="tok-s">"button"</span> <span class="tok-n">onClick</span>={() =&gt; <span class="tok-n">onOpen</span>(<span class="tok-n">media</span>)}&gt;
+        Reimagine
+      &lt;/<span class="tok-k">button</span>&gt;
+    &lt;/<span class="tok-k">div</span>&gt;
+  );
+}</code></pre>
+            </div>
+
+            <div class="callout callout-info">
+              <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              <p><strong>npm pattern.</strong> Configure once on mount, destroy on unmount. Use <code>openingRef</code> to block double-clicks, <code>clearReihLoader()</code> if the overlay gets stuck, and <code>resolveMediaUrl()</code> so <code>/public</code> paths become absolute URLs the backend can fetch.</p>
+            </div>
+            </div>
+
+            <!-- =========== React × CDN =========== -->
+            <div class="method-content" data-method="cdn">
+              <p class="method-note">This integration injects <code>widget.js</code> dynamically from a React page — not from <code>index.html</code>. Useful when you want the script on a specific route without adding the npm package to your bundle.</p>
+
+              <h4>1. Load the script from a page component</h4>
+              <p>Set <code>window.reihWidgetConfig</code> before the script loads. Put <code>public_key</code> on the script tag's <code>data-public-key</code> attribute, not in the config object.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/pages/ScriptEmbedPage.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">useCallback</span>, <span class="tok-n">useEffect</span>, <span class="tok-n">useRef</span> } <span class="tok-k">from</span> <span class="tok-s">'react'</span>;
+<span class="tok-k">import</span> {
+  <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+  <span class="tok-n">WIDGET_SCRIPT_URL</span>,
+  <span class="tok-n">buildScriptEmbedWidgetConfig</span>,
+  <span class="tok-n">clearReihLoader</span>,
+  <span class="tok-n">openReihWithMedia</span>,
+  <span class="tok-n">resolveListingMedia</span>,
+  <span class="tok-n">waitForReihWidget</span>,
+  <span class="tok-k">type</span> <span class="tok-n">ReihMediaItem</span>,
+} <span class="tok-k">from</span> <span class="tok-s">'../widgetConfig'</span>;
+
+<span class="tok-k">const</span> <span class="tok-n">WIDGET_SCRIPT_ID</span> = <span class="tok-s">'reih-widget-script'</span>;
+
+<span class="tok-k">function</span> <span class="tok-f">setScriptEmbedConfig</span>() {
+  <span class="tok-k">window</span>.<span class="tok-n">reihWidgetConfig</span> = <span class="tok-f">buildScriptEmbedWidgetConfig</span>();
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">ScriptEmbedPage</span>() {
+  <span class="tok-k">const</span> <span class="tok-n">openingRef</span> = <span class="tok-f">useRef</span>(<span class="tok-k">false</span>);
+
+  <span class="tok-f">useEffect</span>(() =&gt; {
+    <span class="tok-f">setScriptEmbedConfig</span>();
+
+    <span class="tok-k">let</span> <span class="tok-n">script</span> = <span class="tok-n">document</span>.<span class="tok-f">getElementById</span>(<span class="tok-n">WIDGET_SCRIPT_ID</span>) <span class="tok-k">as</span> <span class="tok-n">HTMLScriptElement</span> | <span class="tok-k">null</span>;
+
+    <span class="tok-k">if</span> (!<span class="tok-n">script</span>) {
+      <span class="tok-n">script</span> = <span class="tok-n">document</span>.<span class="tok-f">createElement</span>(<span class="tok-s">'script'</span>);
+      <span class="tok-n">script</span>.<span class="tok-n">id</span> = <span class="tok-n">WIDGET_SCRIPT_ID</span>;
+      <span class="tok-n">script</span>.<span class="tok-n">src</span> = <span class="tok-s">`${WIDGET_SCRIPT_URL}?v=${Date.now()}`</span>;
+      <span class="tok-n">script</span>.<span class="tok-n">async</span> = <span class="tok-k">true</span>;
+      <span class="tok-n">script</span>.<span class="tok-f">setAttribute</span>(<span class="tok-s">'data-public-key'</span>, <span class="tok-n">WIDGET_PUBLIC_KEY</span>);
+      <span class="tok-n">script</span>.<span class="tok-f">addEventListener</span>(<span class="tok-s">'load'</span>, <span class="tok-f">setScriptEmbedConfig</span>);
+      <span class="tok-n">document</span>.<span class="tok-n">body</span>.<span class="tok-f">appendChild</span>(<span class="tok-n">script</span>);
+    }
+
+    <span class="tok-k">return</span> () =&gt; {
+      <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-f">destroy</span>?.();
+      <span class="tok-f">clearReihLoader</span>();
+    };
+  }, []);
+
+  <span class="tok-c">// ... openWidget, handleOpenAll, handleOpenSingle — see step 2</span>
+}</code></pre>
+              </div>
+
+              <p>Add these helpers to <code>widgetConfig.ts</code> alongside the npm exports:</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/widgetConfig.ts (CDN additions)</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">export const</span> <span class="tok-n">WIDGET_SCRIPT_URL</span> =
+  <span class="tok-s">'https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js'</span>;
+
+<span class="tok-k">export function</span> <span class="tok-f">buildScriptEmbedWidgetConfig</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(),
+    <span class="tok-n">mode</span>: <span class="tok-s">'simple'</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[reih] onError:'</span>, <span class="tok-n">err</span>),
+    <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onClose'</span>),
+  };
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">waitForReihWidget</span>(<span class="tok-n">timeoutMs</span> = <span class="tok-n">30_000</span>) {
+  <span class="tok-k">if</span> (<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) <span class="tok-k">return</span> <span class="tok-n">Promise</span>.<span class="tok-f">resolve</span>(<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>);
+
+  <span class="tok-k">return new</span> <span class="tok-n">Promise</span>((<span class="tok-n">resolve</span>, <span class="tok-n">reject</span>) =&gt; {
+    <span class="tok-k">const</span> <span class="tok-n">poller</span> = <span class="tok-n">setInterval</span>(() =&gt; {
+      <span class="tok-k">if</span> (<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) {
+        <span class="tok-f">clearInterval</span>(<span class="tok-n">poller</span>);
+        <span class="tok-f">resolve</span>(<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>);
+      }
+    }, <span class="tok-n">50</span>);
+    <span class="tok-n">setTimeout</span>(() =&gt; { <span class="tok-f">clearInterval</span>(<span class="tok-n">poller</span>); <span class="tok-f">reject</span>(<span class="tok-k">new</span> <span class="tok-n">Error</span>(<span class="tok-s">'Widget script did not load'</span>)); }, <span class="tok-n">timeoutMs</span>);
+  });
+}</code></pre>
+              </div>
+
+              <h4>2. Open with destroy-before-each-launch</h4>
+              <p>CDN differs from npm: call <code>destroy()</code> before every <code>open()</code> to reset stuck loader state. Re-apply config, wait for the global API, then open.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/pages/ScriptEmbedPage.tsx (open flow)</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">const</span> <span class="tok-n">openWidget</span> = <span class="tok-f">useCallback</span>(<span class="tok-k">async</span> (<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]) =&gt; {
+  <span class="tok-k">if</span> (<span class="tok-n">openingRef</span>.<span class="tok-n">current</span>) <span class="tok-k">return</span>;
+  <span class="tok-n">openingRef</span>.<span class="tok-n">current</span> = <span class="tok-k">true</span>;
+  <span class="tok-k">try</span> {
+    <span class="tok-f">setScriptEmbedConfig</span>();
+    <span class="tok-k">const</span> <span class="tok-n">widget</span> = <span class="tok-k">await</span> <span class="tok-f">waitForReihWidget</span>();
+    <span class="tok-n">widget</span>.<span class="tok-f">destroy</span>();
+    <span class="tok-f">clearReihLoader</span>();
+    <span class="tok-k">await</span> <span class="tok-f">openReihWithMedia</span>(<span class="tok-n">widget</span>, <span class="tok-n">media</span>);
+  } <span class="tok-k">catch</span> (<span class="tok-n">error</span>) {
+    <span class="tok-f">clearReihLoader</span>();
+    <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[script-embed] Widget open failed:'</span>, <span class="tok-n">error</span>);
+  } <span class="tok-k">finally</span> {
+    <span class="tok-n">openingRef</span>.<span class="tok-n">current</span> = <span class="tok-k">false</span>;
+  }
+}, []);
+
+<span class="tok-k">const</span> <span class="tok-n">handleOpenAll</span> = <span class="tok-f">useCallback</span>(() =&gt; {
+  <span class="tok-k">void</span> <span class="tok-n">openWidget</span>(<span class="tok-f">resolveListingMedia</span>());
+}, [<span class="tok-n">openWidget</span>]);
+
+<span class="tok-k">const</span> <span class="tok-n">handleOpenSingle</span> = <span class="tok-f">useCallback</span>(
+  (<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>) =&gt; { <span class="tok-k">void</span> <span class="tok-n">openWidget</span>([<span class="tok-n">media</span>]); },
+  [<span class="tok-n">openWidget</span>],
+);</code></pre>
+              </div>
+
+              <p>The listing UI uses the same <code>MediaWithWidgetButton</code> component as the npm path — wire <code>onOpenAll</code> and <code>onOpenSingle</code> to the handlers above.</p>
+
+              <div class="callout callout-info">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p><strong>CDN vs npm.</strong> CDN puts <code>public_key</code> on <code>data-public-key</code>, injects the script from React, and calls <code>destroy()</code> before every open. npm imports <code>reihWidget</code> directly and only destroys on unmount.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ====== NEXT.JS ====== -->
+          <div class="tab-panel" data-panel="next">
+            <div class="method-toggle">
+              <button data-method="npm">npm package</button>
+              <button data-method="cdn">CDN script</button>
+            </div>
+
+            <!-- =========== Next.js × npm =========== -->
+            <div class="method-content" data-method="npm">
+              <h4>1. Install</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">terminal</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>npm install reimaginehome-widget</code></pre>
+              </div>
+
+              <h4>2. Configure in a client provider</h4>
+              <p>The widget is browser-only. In App Router, wrap configuration in a client component and mount it once at the root layout.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">app/providers/ReihProvider.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-s">"use client"</span>;
+
+<span class="tok-k">import</span> { <span class="tok-n">useEffect</span> } <span class="tok-k">from</span> <span class="tok-s">"react"</span>;
+<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
+
+<span class="tok-k">export function</span> <span class="tok-f">ReihProvider</span>({ <span class="tok-n">children</span> }) {
+  <span class="tok-f">useEffect</span>(() =&gt; {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>({
+      <span class="tok-n">public_key</span>: <span class="tok-f">process</span>.<span class="tok-n">env</span>.<span class="tok-n">NEXT_PUBLIC_REIH_KEY</span>!,
+      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+      <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
+      <span class="tok-n">language</span>: [
+        { <span class="tok-n">code</span>: <span class="tok-s">"en-US"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United States)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (US)"</span> },
+      ],
+      <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
+    });
+    <span class="tok-k">return</span> () =&gt; <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+  }, []);
+
+  <span class="tok-k">return</span> &lt;&gt;{<span class="tok-n">children</span>}&lt;/&gt;;
+}</code></pre>
+              </div>
+
+              <h4>3. Wire it into the root layout</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">app/layout.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">ReihProvider</span> } <span class="tok-k">from</span> <span class="tok-s">"./providers/ReihProvider"</span>;
+
+<span class="tok-k">export default function</span> <span class="tok-f">RootLayout</span>({ <span class="tok-n">children</span> }) {
+  <span class="tok-k">return</span> (
+    &lt;<span class="tok-k">html</span>&gt;
+      &lt;<span class="tok-k">body</span>&gt;
+        &lt;<span class="tok-n">ReihProvider</span>&gt;{<span class="tok-n">children</span>}&lt;/<span class="tok-n">ReihProvider</span>&gt;
+      &lt;/<span class="tok-k">body</span>&gt;
+    &lt;/<span class="tok-k">html</span>&gt;
+  );
+}</code></pre>
+              </div>
+
+              <h4>4. Open from a client component</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">app/listings/[id]/ReimagineButton.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-s">"use client"</span>;
+
+<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
+
+<span class="tok-k">type</span> <span class="tok-n">Photo</span> = { <span class="tok-n">id</span>: <span class="tok-n">string</span>; <span class="tok-n">publicUrl</span>: <span class="tok-n">string</span>; <span class="tok-n">label</span>?: <span class="tok-n">string</span> };
+
+<span class="tok-k">export function</span> <span class="tok-f">ReimagineButton</span>({ <span class="tok-n">photos</span> }: { <span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[] }) {
+  <span class="tok-k">const</span> <span class="tok-n">openAll</span> = <span class="tok-k">async</span> () =&gt; {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+    <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
+      <span class="tok-n">media</span>: <span class="tok-n">photos</span>.<span class="tok-f">map</span>((<span class="tok-n">p</span>) =&gt; ({ <span class="tok-n">image_url</span>: <span class="tok-n">p</span>.<span class="tok-n">publicUrl</span> })),
+      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+    });
+  };
+
+  <span class="tok-k">return</span> &lt;<span class="tok-k">button</span> <span class="tok-n">onClick</span>={<span class="tok-n">openAll</span>}&gt;Reimagine this space&lt;/<span class="tok-k">button</span>&gt;;
+}</code></pre>
+              </div>
+
+              <div class="callout callout-warn">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+                <p><strong>Server vs client.</strong> The widget cannot be imported in a server component. Every file that imports <code>reihWidget</code> must start with <code>"use client"</code>. If you forget, you'll see a server-runtime error referencing <code>window</code>.</p>
+              </div>
+            </div>
+
+            <!-- =========== Next.js × CDN =========== -->
+            <div class="method-content" data-method="cdn">
+              <p class="method-note">For Next.js, the npm path is the natural fit. Use the CDN path only if you specifically want the widget loaded outside your bundle.</p>
+
+              <h4>1. Load the script in your root layout</h4>
+              <p>Use Next.js's <code>&lt;Script&gt;</code> component so the loader survives client-side navigation. Set persistent config with a <code>beforeInteractive</code> inline script.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">app/layout.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> <span class="tok-n">Script</span> <span class="tok-k">from</span> <span class="tok-s">"next/script"</span>;
+
+<span class="tok-k">export default function</span> <span class="tok-f">RootLayout</span>({ <span class="tok-n">children</span> }) {
+  <span class="tok-k">return</span> (
+    &lt;<span class="tok-k">html</span>&gt;
+      &lt;<span class="tok-k">body</span>&gt;
+        &lt;<span class="tok-n">Script</span> <span class="tok-n">id</span>=<span class="tok-s">"reih-config"</span> <span class="tok-n">strategy</span>=<span class="tok-s">"beforeInteractive"</span>&gt;
+          {<span class="tok-s">`window.reihWidgetConfig = {
+            mode: "simple",
+            branding: { primary_color: "#1F6F4A", heading: "Reimagine this space" },
+            sidebar_position: "right",
+          };`</span>}
+        &lt;/<span class="tok-n">Script</span>&gt;
+        &lt;<span class="tok-n">Script</span>
+          <span class="tok-n">src</span>=<span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>
+          <span class="tok-n">strategy</span>=<span class="tok-s">"afterInteractive"</span>
+          <span class="tok-n">data-public-key</span>={<span class="tok-f">process</span>.<span class="tok-n">env</span>.<span class="tok-n">NEXT_PUBLIC_REIH_KEY</span>}
+        /&gt;
+        {<span class="tok-n">children</span>}
+      &lt;/<span class="tok-k">body</span>&gt;
+    &lt;/<span class="tok-k">html</span>&gt;
+  );
+}</code></pre>
+              </div>
+
+              <h4>2. Trigger from a client component</h4>
+              <p>Access the global loader from a client-side button handler.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">app/listings/[id]/ReimagineButton.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-s">"use client"</span>;
+
+<span class="tok-k">declare global</span> {
+  <span class="tok-k">interface</span> <span class="tok-n">Window</span> { <span class="tok-n">reihWidget</span>?: <span class="tok-k">any</span>; }
+}
+
+<span class="tok-k">type</span> <span class="tok-n">Photo</span> = { <span class="tok-n">id</span>: <span class="tok-n">string</span>; <span class="tok-n">publicUrl</span>: <span class="tok-n">string</span> };
+
+<span class="tok-k">export function</span> <span class="tok-f">ReimagineButton</span>({ <span class="tok-n">photos</span> }: { <span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[] }) {
+  <span class="tok-k">const</span> <span class="tok-n">openAll</span> = <span class="tok-k">async</span> () =&gt; {
+    <span class="tok-k">while</span> (!<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) {
+      <span class="tok-k">await new</span> <span class="tok-f">Promise</span>((<span class="tok-n">r</span>) =&gt; <span class="tok-f">setTimeout</span>(<span class="tok-n">r</span>, <span class="tok-s">50</span>));
+    }
+    <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>?.();
+    <span class="tok-k">await</span> <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
+      <span class="tok-n">media</span>: <span class="tok-n">photos</span>.<span class="tok-f">map</span>((<span class="tok-n">p</span>) =&gt; ({ <span class="tok-n">image_url</span>: <span class="tok-n">p</span>.<span class="tok-n">publicUrl</span> })),
+      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+    });
+  };
+
+  <span class="tok-k">return</span> &lt;<span class="tok-k">button</span> <span class="tok-n">onClick</span>={<span class="tok-n">openAll</span>}&gt;Reimagine this space&lt;/<span class="tok-k">button</span>&gt;;
+}</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- ====== VANILLA ====== -->
+          <div class="tab-panel" data-panel="vanilla">
+            <div class="method-toggle">
+              <button data-method="npm">npm package</button>
+              <button data-method="cdn">CDN script</button>
+            </div>
+
+            <!-- =========== Vanilla × npm =========== -->
+            <div class="method-content" data-method="npm">
+              <p class="method-note">For vanilla JS / HTML the CDN script is the natural choice — switch above. The npm path only makes sense if you have a build step (esbuild, Parcel, Webpack) and want the widget bundled with your other code.</p>
+
+              <h4>1. Install</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">terminal</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>npm install reimaginehome-widget</code></pre>
+              </div>
+
+              <h4>2. Configure and open</h4>
+              <p>Import the loader, configure once on page load, and wire your button.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">main.js (built &amp; bundled)</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
+
+<span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>({
+  <span class="tok-n">public_key</span>: <span class="tok-s">"ppk_live_xxx"</span>,
+  <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+  <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
+  <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
+});
+
+<span class="tok-f">document</span>.<span class="tok-f">getElementById</span>(<span class="tok-s">"reih-open"</span>).<span class="tok-n">onclick</span> = <span class="tok-k">async</span> () =&gt; {
+  <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+  <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
+    <span class="tok-n">media</span>: [
+      { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/photos/01.webp"</span> },
+      { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/photos/02.webp"</span> },
+    ],
+    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+  });
+};</code></pre>
+              </div>
+            </div>
+
+            <!-- =========== Vanilla × CDN =========== -->
+            <div class="method-content" data-method="cdn">
+              <h4>1. Load the script</h4>
+              <p>Drop the script tag in your <code>&lt;head&gt;</code> with <code>async</code>. Set your config in a small inline script <em>before</em> the widget loads. The publishable key goes on the script tag's <code>data-public-key</code> attribute.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">listing.html</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>&lt;<span class="tok-k">script</span>&gt;
+  <span class="tok-k">window</span>.<span class="tok-n">reihWidgetConfig</span> = {
+    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+    <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
+    <span class="tok-n">language</span>: [
+      { <span class="tok-n">code</span>: <span class="tok-s">"en-US"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United States)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (US)"</span> },
+    ],
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
+  };
+&lt;/<span class="tok-k">script</span>&gt;
+&lt;<span class="tok-k">script</span> <span class="tok-n">async</span>
+  <span class="tok-n">src</span>=<span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>
+  <span class="tok-n">data-public-key</span>=<span class="tok-s">"ppk_live_xxx"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
+              </div>
+
+              <h4>2. Wire up your buttons</h4>
+              <p>The widget exposes itself on <code>window.reihWidget</code> once the script has loaded. Wait for it, then attach handlers.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">listing.html</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>&lt;<span class="tok-k">button</span> <span class="tok-n">data-reih</span>=<span class="tok-s">"all"</span>&gt;Reimagine all rooms&lt;/<span class="tok-k">button</span>&gt;
+&lt;<span class="tok-k">button</span> <span class="tok-n">data-reih</span> <span class="tok-n">data-photo</span>=<span class="tok-s">"https://yoursite.com/photos/01.webp"</span>&gt;
+  Reimagine this room
+&lt;/<span class="tok-k">button</span>&gt;
+
+&lt;<span class="tok-k">script</span>&gt;
+  <span class="tok-k">const</span> <span class="tok-n">allMedia</span> = [
+    { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/photos/01.webp"</span> },
+    { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/photos/02.webp"</span> },
+  ];
+
+  <span class="tok-k">function</span> <span class="tok-f">whenReady</span>(<span class="tok-n">cb</span>) {
+    <span class="tok-k">if</span> (<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) <span class="tok-k">return</span> <span class="tok-f">cb</span>();
+    <span class="tok-f">setTimeout</span>(() =&gt; <span class="tok-f">whenReady</span>(<span class="tok-n">cb</span>), <span class="tok-s">50</span>);
+  }
+
+  <span class="tok-f">whenReady</span>(() =&gt; {
+    <span class="tok-f">document</span>.<span class="tok-f">querySelectorAll</span>(<span class="tok-s">"[data-reih]"</span>).<span class="tok-f">forEach</span>((<span class="tok-n">btn</span>) =&gt; {
+      <span class="tok-n">btn</span>.<span class="tok-f">addEventListener</span>(<span class="tok-s">"click"</span>, <span class="tok-k">async</span> () =&gt; {
+        <span class="tok-k">const</span> <span class="tok-n">one</span> = <span class="tok-n">btn</span>.<span class="tok-n">dataset</span>.<span class="tok-n">photo</span>;
+        <span class="tok-k">const</span> <span class="tok-n">media</span> = <span class="tok-n">one</span> ? [{ <span class="tok-n">image_url</span>: <span class="tok-n">one</span> }] : <span class="tok-n">allMedia</span>;
+        <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>?.();
+        <span class="tok-k">await</span> <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({ <span class="tok-n">media</span>, <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> });
+      });
+    });
+  });
+&lt;/<span class="tok-k">script</span>&gt;</code></pre>
+              </div>
+
+              <div class="callout callout-info">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p><strong>WordPress.</strong> The same pattern works inside a WordPress theme. Drop the script tags in <code>header.php</code> (or via <code>wp_enqueue_script</code>) and the buttons + handler in your single-listing template.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ====== ANGULAR ====== -->
+          <div class="tab-panel" data-panel="angular">
+            <div class="method-toggle">
+              <button data-method="npm">npm package</button>
+              <button data-method="cdn">CDN script</button>
+            </div>
+
+            <!-- =========== Angular × npm =========== -->
+            <div class="method-content" data-method="npm">
+              <h4>1. Install</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">terminal</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>npm install reimaginehome-widget</code></pre>
+              </div>
+
+              <h4>2. Wrap it in an injectable service</h4>
+              <p>Provide the widget as a root-scoped service so it's configured once for the whole app.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/app/reih.service.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">Injectable</span>, <span class="tok-n">OnDestroy</span> } <span class="tok-k">from</span> <span class="tok-s">"@angular/core"</span>;
+<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
+<span class="tok-k">import</span> { <span class="tok-n">environment</span> } <span class="tok-k">from</span> <span class="tok-s">"../environments/environment"</span>;
+
+<span class="tok-k">type</span> <span class="tok-n">Photo</span> = { <span class="tok-n">id</span>: <span class="tok-n">string</span>; <span class="tok-n">publicUrl</span>: <span class="tok-n">string</span>; <span class="tok-n">label</span>?: <span class="tok-n">string</span> };
+
+@<span class="tok-f">Injectable</span>({ <span class="tok-n">providedIn</span>: <span class="tok-s">"root"</span> })
+<span class="tok-k">export class</span> <span class="tok-n">ReihService</span> <span class="tok-k">implements</span> <span class="tok-n">OnDestroy</span> {
+  <span class="tok-f">constructor</span>() {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>({
+      <span class="tok-n">public_key</span>: <span class="tok-n">environment</span>.<span class="tok-n">reihKey</span>,
+      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+      <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
+      <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
+    });
+  }
+
+  <span class="tok-k">private</span> <span class="tok-f">toMedia</span>(<span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[]) {
+    <span class="tok-k">return</span> <span class="tok-n">photos</span>.<span class="tok-f">map</span>((<span class="tok-n">p</span>) =&gt; ({
+      <span class="tok-n">image_url</span>: <span class="tok-n">p</span>.<span class="tok-n">publicUrl</span>,
+      ...(<span class="tok-n">p</span>.<span class="tok-n">label</span> ? { <span class="tok-n">label</span>: <span class="tok-n">p</span>.<span class="tok-n">label</span> } : {}),
+    }));
+  }
+
+  <span class="tok-k">async</span> <span class="tok-f">openAll</span>(<span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[]) {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+    <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({ <span class="tok-n">media</span>: <span class="tok-k">this</span>.<span class="tok-f">toMedia</span>(<span class="tok-n">photos</span>), <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> });
+  }
+
+  <span class="tok-k">async</span> <span class="tok-f">openOne</span>(<span class="tok-n">photo</span>: <span class="tok-n">Photo</span>) {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+    <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({ <span class="tok-n">media</span>: <span class="tok-k">this</span>.<span class="tok-f">toMedia</span>([<span class="tok-n">photo</span>]), <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> });
+  }
+
+  <span class="tok-f">ngOnDestroy</span>() {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+  }
+}</code></pre>
+              </div>
+
+              <h4>3. Inject and call from a component</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/app/listing/listing.component.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">Component</span>, <span class="tok-n">Input</span> } <span class="tok-k">from</span> <span class="tok-s">"@angular/core"</span>;
+<span class="tok-k">import</span> { <span class="tok-n">ReihService</span> } <span class="tok-k">from</span> <span class="tok-s">"../reih.service"</span>;
+
+@<span class="tok-f">Component</span>({
+  <span class="tok-n">selector</span>: <span class="tok-s">"app-listing"</span>,
+  <span class="tok-n">template</span>: <span class="tok-s">`
+    &lt;button (click)="reih.openAll(photos)"&gt;Reimagine all rooms&lt;/button&gt;
+    &lt;div *ngFor="let p of photos"&gt;
+      &lt;img [src]="p.src" [alt]="p.label || 'Room photo'" /&gt;
+      &lt;button (click)="reih.openOne(p)"&gt;Reimagine this room&lt;/button&gt;
+    &lt;/div&gt;
+  `</span>,
+})
+<span class="tok-k">export class</span> <span class="tok-n">ListingComponent</span> {
+  @<span class="tok-f">Input</span>() <span class="tok-n">photos</span>: <span class="tok-n">any</span>[] = [];
+  <span class="tok-f">constructor</span>(<span class="tok-k">public</span> <span class="tok-n">reih</span>: <span class="tok-n">ReihService</span>) {}
+}</code></pre>
+              </div>
+
+              <div class="callout callout-info">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p><strong>Standalone components.</strong> If you're on Angular 15+ with standalone components, the service still works the same — <code>providedIn: "root"</code> handles registration without an <code>NgModule</code>.</p>
+              </div>
+            </div>
+
+            <!-- =========== Angular × CDN =========== -->
+            <div class="method-content" data-method="cdn">
+              <p class="method-note">For Angular, the npm path is the natural fit. Use the CDN path if you have constraints that prevent bundling the package.</p>
+
+              <h4>1. Add the script to index.html</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/index.html</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>&lt;<span class="tok-k">script</span>&gt;
+  <span class="tok-k">window</span>.<span class="tok-n">reihWidgetConfig</span> = {
+    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+    <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
+  };
+&lt;/<span class="tok-k">script</span>&gt;
+&lt;<span class="tok-k">script</span> <span class="tok-n">async</span>
+  <span class="tok-n">src</span>=<span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>
+  <span class="tok-n">data-public-key</span>=<span class="tok-s">"ppk_live_xxx"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
+              </div>
+
+              <h4>2. Wrap the global loader in a service</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/app/reih.service.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">Injectable</span>, <span class="tok-n">OnDestroy</span> } <span class="tok-k">from</span> <span class="tok-s">"@angular/core"</span>;
+
+<span class="tok-k">declare global</span> {
+  <span class="tok-k">interface</span> <span class="tok-n">Window</span> { <span class="tok-n">reihWidget</span>?: <span class="tok-k">any</span>; }
+}
+
+<span class="tok-k">type</span> <span class="tok-n">Photo</span> = { <span class="tok-n">id</span>: <span class="tok-n">string</span>; <span class="tok-n">publicUrl</span>: <span class="tok-n">string</span>; <span class="tok-n">label</span>?: <span class="tok-n">string</span> };
+
+@<span class="tok-f">Injectable</span>({ <span class="tok-n">providedIn</span>: <span class="tok-s">"root"</span> })
+<span class="tok-k">export class</span> <span class="tok-n">ReihService</span> <span class="tok-k">implements</span> <span class="tok-n">OnDestroy</span> {
+  <span class="tok-k">private async</span> <span class="tok-f">whenReady</span>() {
+    <span class="tok-k">while</span> (!<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) {
+      <span class="tok-k">await new</span> <span class="tok-f">Promise</span>((<span class="tok-n">r</span>) =&gt; <span class="tok-f">setTimeout</span>(<span class="tok-n">r</span>, <span class="tok-s">50</span>));
+    }
+  }
+
+  <span class="tok-k">async</span> <span class="tok-f">openAll</span>(<span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[]) {
+    <span class="tok-k">await this</span>.<span class="tok-f">whenReady</span>();
+    <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>?.();
+    <span class="tok-k">await</span> <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
+      <span class="tok-n">media</span>: <span class="tok-n">photos</span>.<span class="tok-f">map</span>((<span class="tok-n">p</span>) =&gt; ({ <span class="tok-n">image_url</span>: <span class="tok-n">p</span>.<span class="tok-n">publicUrl</span> })),
+      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+    });
+  }
+
+  <span class="tok-f">ngOnDestroy</span>() {
+    <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-f">destroy</span>?.();
+  }
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ BRANDING ============ -->
+      <section id="branding">
+        <h2>Styling &amp; branding</h2>
+        <p class="section-intro">
+          The widget renders inside its own overlay and isn't styleable by your page CSS — but it accepts a constrained set of branding tokens so it can match your visual identity.
+        </p>
+
+        <h3>What you can customize</h3>
+        <ul>
+          <li><strong>Primary color</strong> — used for buttons, highlights, and focus states. Pass any hex value that meets WCAG AA contrast with white text.</li>
+          <li><strong>Heading text</strong> — the headline at the top of the widget. Defaults to <span class="placeholder">"Reimagine this space"</span>.</li>
+          <li><strong>Co-brand logo</strong> — shown alongside the ReimagineHome mark in the header. SVG preferred, PNG accepted.</li>
+          <li><strong>Language</strong> — initial language selection. Users can switch inside the widget.</li>
+        </ul>
+
+        <h3>What you cannot customize</h3>
+        <ul>
+          <li>The widget's layout, typography, or component structure.</li>
+          <li>The ReimagineHome attribution mark.</li>
+          <li>The style-choice UI generated from room-type detection.</li>
+        </ul>
+
+        <h3>Example</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-filename">branding</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>({
+  <span class="tok-n">public_key</span>: <span class="tok-n">env</span>.<span class="tok-n">REIH_KEY</span>,
+  <span class="tok-n">branding</span>: {
+    <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>,           <span class="tok-c">// your brand green</span>
+    <span class="tok-n">heading</span>:       <span class="tok-s">"Restyle this room"</span>,  <span class="tok-c">// override the default</span>
+    <span class="tok-n">logo_url</span>:      <span class="tok-s">"https://yoursite.com/logo.svg"</span>,
+  },
+  <span class="tok-n">language</span>: <span class="tok-s">"pl"</span>,                          <span class="tok-c">// "en" | "pl" | "es"</span>
+});</code></pre>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div>ReimagineHome Widget · Integration Guide · v0.1</div>
+        <div>Internal draft — not for partner distribution</div>
+      </footer>
+
+    </div>
+  </main>
+
+  <!-- ==================== RIGHT RAIL ==================== -->
+  <aside class="rail">
+    <p class="rail-label">On this page</p>
+    <a href="#overview">Overview</a>
+    <a href="#quick-start">Quick start</a>
+    <a href="#how-it-works">How the widget works</a>
+    <a href="#requirements">Integration requirements</a>
+    <a href="#config-ref">Configuration reference</a>
+    <a href="#open-payload">The open() payload</a>
+    <a href="#framework-guides">Framework guides</a>
+    <a href="#branding">Styling &amp; branding</a>
+  </aside>
+
+</div>
+
+<script>
+// -------- Theme toggle --------
+(function() {
+  const btn = document.getElementById('themeBtn');
+  const sun = document.getElementById('iconSun');
+  const moon = document.getElementById('iconMoon');
+  const stored = localStorage.getItem('reih-docs-theme');
+  if (stored === 'dark') setTheme('dark');
+
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('reih-docs-theme', next);
+  });
+
+  function setTheme(t) {
+    document.documentElement.dataset.theme = t;
+    sun.style.display = t === 'dark' ? 'block' : 'none';
+    moon.style.display = t === 'dark' ? 'none' : 'block';
+  }
+})();
+
+// -------- Mobile menu --------
+(function() {
+  const btn = document.getElementById('menuBtn');
+  const sidebar = document.getElementById('sidebar');
+  btn.addEventListener('click', () => sidebar.classList.toggle('open'));
+  sidebar.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => sidebar.classList.remove('open'));
+  });
+})();
+
+// -------- Copy buttons --------
+(function() {
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const block = btn.closest('.code-block');
+      const code = block.querySelector('pre').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+      });
+    });
+  });
+})();
+
+// -------- Framework tabs + method toggle --------
+(function() {
+  const tabs = document.getElementById('frameworkTabs');
+  if (!tabs) return;
+
+  let currentMethod = 'npm'; // global state — persists across framework switches
+
+  function applyMethod(method) {
+    currentMethod = method;
+    tabs.querySelectorAll('.method-toggle button').forEach(b => {
+      b.classList.toggle('active', b.dataset.method === method);
+    });
+    tabs.querySelectorAll('.method-content').forEach(c => {
+      c.classList.toggle('active', c.dataset.method === method);
+    });
+  }
+
+  // Framework tab switching
+  tabs.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      tabs.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      tabs.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === target));
+      // Re-apply method state so the newly visible panel shows the right sub-content
+      applyMethod(currentMethod);
+    });
+  });
+
+  // Method toggle (delegated since toggles exist in every panel)
+  tabs.addEventListener('click', (e) => {
+    const mbtn = e.target.closest('.method-toggle button');
+    if (mbtn && tabs.contains(mbtn)) applyMethod(mbtn.dataset.method);
+  });
+
+  // Initialize
+  applyMethod(currentMethod);
+})();
+
+// -------- Scroll spy (sidebar + rail) --------
+(function() {
+  const sections = Array.from(document.querySelectorAll('main section[id]'));
+  const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+  const railLinks = document.querySelectorAll('.rail a[href^="#"]');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        sidebarLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+        railLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+
+  sections.forEach(s => observer.observe(s));
+})();
+</script>
+
+</body>
+</html>
