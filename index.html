@@ -6,60 +6,62 @@
 <title>ReimagineHome Widget · Integration Guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ---------- Tokens ---------- */
 :root {
-  --bg: #FAFAF7;
-  --bg-soft: #F2F1EC;
-  --bg-code: #F4F3EE;
+  --bg: #FFFFFF;
+  --bg-soft: #F8FAFA;
+  --bg-code: #F4F6F6;
   --surface: #FFFFFF;
-  --text: #14201A;
-  --text-muted: #5E6B62;
-  --text-soft: #8A958E;
-  --border: #E5E4DC;
-  --border-strong: #D1D0C5;
-  --accent: #1F6F4A;
-  --accent-soft: #E8F1EC;
-  --accent-strong: #155236;
+  --text: #071121;
+  --text-muted: #1B232E;
+  --text-soft: #555555;
+  --border: #E8ECEC;
+  --border-strong: #D5DDDD;
+  --accent: #41B378;
+  --accent-secondary: #03A1AC;
+  --accent-soft: #E8F7F6;
+  --accent-strong: #2A9A6A;
   --warn-bg: #FBF4DC;
   --warn-border: #E5D38A;
   --warn-text: #6B5410;
-  --code-text: #1F2A24;
+  --code-text: #071121;
   --code-keyword: #A04B12;
-  --code-string: #1F6F4A;
-  --code-comment: #8A958E;
-  --code-fn: #2A4B8F;
-  --shadow: 0 1px 0 rgba(20, 32, 26, 0.04);
-  --radius: 6px;
+  --code-string: #41B378;
+  --code-comment: #555555;
+  --code-fn: #03A1AC;
+  --shadow: 0 1px 0 rgba(7, 17, 33, 0.04);
+  --radius: 8px;
   --maxw-content: 760px;
 }
 [data-theme="dark"] {
-  --bg: #0F1411;
-  --bg-soft: #181E1A;
-  --bg-code: #111713;
-  --surface: #151B17;
-  --text: #E8ECE8;
-  --text-muted: #9AA39E;
-  --text-soft: #6E7873;
-  --border: #242B27;
-  --border-strong: #2F3833;
-  --accent: #6DD0A1;
-  --accent-soft: #1A2B22;
-  --accent-strong: #95E0B8;
+  --bg: #071121;
+  --bg-soft: #0F1A2B;
+  --bg-code: #0A1524;
+  --surface: #0F1A2B;
+  --text: #F5F7FA;
+  --text-muted: #C5CDD8;
+  --text-soft: #8A95A3;
+  --border: #1B2A3D;
+  --border-strong: #2A3D52;
+  --accent: #5FD4A0;
+  --accent-secondary: #4ECFD6;
+  --accent-soft: #122A35;
+  --accent-strong: #7FE0B8;
   --warn-bg: #2A2310;
   --warn-border: #5E4F1A;
   --warn-text: #E5D38A;
-  --code-text: #D8DDD9;
+  --code-text: #E8ECE8;
   --code-keyword: #E8A876;
-  --code-string: #92D6AE;
-  --code-comment: #6E7873;
-  --code-fn: #8FB0E8;
+  --code-string: #7FD4A8;
+  --code-comment: #8A95A3;
+  --code-fn: #6ECFD6;
 }
 
 /* ---------- Reset ---------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+html { scroll-behavior: smooth; scroll-padding-top: 32px; }
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -75,132 +77,37 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 code, pre { font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace; }
 button { font-family: inherit; cursor: pointer; }
 
-/* ---------- Top bar ---------- */
-.topbar {
-  position: sticky;
-  top: 0;
+/* ---------- Theme toggle ---------- */
+.theme-fab {
+  position: fixed;
+  top: 20px;
+  right: 20px;
   z-index: 50;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  height: 60px;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  gap: 16px;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--text);
-}
-.brand-mark {
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
-  background: var(--accent);
-  display: grid;
-  place-items: center;
-  color: white;
-  font-family: 'Instrument Serif', serif;
-  font-size: 17px;
-  font-style: italic;
-  line-height: 1;
-}
-.brand-sub {
-  color: var(--text-muted);
-  font-weight: 400;
-  font-size: 13px;
-  padding-left: 12px;
-  margin-left: 4px;
-  border-left: 1px solid var(--border);
-}
-.topbar-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.version-pill {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: var(--warn-bg);
-  color: var(--warn-text);
-  border: 1px solid var(--warn-border);
-}
-.icon-btn {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: var(--radius);
   display: grid;
   place-items: center;
   color: var(--text-muted);
+  box-shadow: var(--shadow);
   transition: color 0.15s, border-color 0.15s;
 }
-.icon-btn:hover { color: var(--text); border-color: var(--border-strong); }
-.icon-btn svg { width: 16px; height: 16px; }
-.menu-btn { display: none; }
+.theme-fab:hover { color: var(--text); border-color: var(--border-strong); }
+.theme-fab svg { width: 16px; height: 16px; }
 
 /* ---------- Layout ---------- */
 .layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 220px;
-  max-width: 1400px;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
-/* ---------- Sidebar ---------- */
-.sidebar {
-  position: sticky;
-  top: 60px;
-  height: calc(100vh - 60px);
-  overflow-y: auto;
-  padding: 32px 24px 48px 24px;
-  border-right: 1px solid var(--border);
-}
-.sidebar-section {
-  margin-bottom: 24px;
-}
-.sidebar-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-  margin: 0 0 8px 0;
-  padding: 0 8px;
-}
-.sidebar a {
-  display: block;
-  padding: 5px 8px;
-  font-size: 13.5px;
-  color: var(--text-muted);
-  border-radius: 4px;
-  margin-bottom: 1px;
-}
-.sidebar a:hover {
-  background: var(--bg-soft);
-  color: var(--text);
-  text-decoration: none;
-}
-.sidebar a.active {
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-  font-weight: 500;
-}
-[data-theme="dark"] .sidebar a.active { color: var(--accent); }
-
 /* ---------- Main content ---------- */
 .main {
-  padding: 48px 56px 120px 56px;
+  padding: 56px 48px 120px 48px;
   min-width: 0;
 }
 .content {
@@ -210,10 +117,10 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Right rail ---------- */
 .rail {
   position: sticky;
-  top: 60px;
-  height: calc(100vh - 60px);
+  top: 32px;
+  height: calc(100vh - 32px);
   overflow-y: auto;
-  padding: 48px 24px;
+  padding: 56px 24px 48px 16px;
   border-left: 1px solid var(--border);
 }
 .rail-label {
@@ -251,7 +158,7 @@ button { font-family: inherit; cursor: pointer; }
   margin: 0 0 16px 0;
 }
 .hero-title {
-  font-family: 'Instrument Serif', serif;
+  font-family: 'DM Serif Display', serif;
   font-weight: 400;
   font-size: 56px;
   line-height: 1.05;
@@ -271,14 +178,14 @@ button { font-family: inherit; cursor: pointer; }
   max-width: 620px;
 }
 h2 {
-  font-family: 'Instrument Serif', serif;
+  font-family: 'DM Serif Display', serif;
   font-weight: 400;
   font-size: 36px;
   line-height: 1.15;
   letter-spacing: -0.015em;
   margin: 72px 0 16px 0;
   color: var(--text);
-  scroll-margin-top: 80px;
+  scroll-margin-top: 32px;
 }
 h2:first-child { margin-top: 0; }
 h3 {
@@ -288,7 +195,7 @@ h3 {
   line-height: 1.4;
   margin: 36px 0 12px 0;
   color: var(--text);
-  scroll-margin-top: 80px;
+  scroll-margin-top: 32px;
 }
 h4 {
   font-family: 'Inter', sans-serif;
@@ -335,11 +242,14 @@ hr {
   transition: all 0.15s;
 }
 .btn-primary {
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-secondary) 100%);
   color: white;
 }
-.btn-primary:hover { background: var(--accent-strong); text-decoration: none; }
-[data-theme="dark"] .btn-primary { color: #0F1411; }
+.btn-primary:hover {
+  background: linear-gradient(90deg, #369966 0%, #028E98 100%);
+  text-decoration: none;
+}
+[data-theme="dark"] .btn-primary { color: #071121; }
 .btn-secondary {
   background: var(--surface);
   color: var(--text);
@@ -370,7 +280,7 @@ hr {
   gap: 8px;
 }
 .card-title .num {
-  font-family: 'Instrument Serif', serif;
+  font-family: 'DM Serif Display', serif;
   font-style: italic;
   font-size: 22px;
   color: var(--accent);
@@ -560,7 +470,7 @@ td code { white-space: nowrap; }
   padding: 20px;
 }
 .compare-head {
-  font-family: 'Instrument Serif', serif;
+  font-family: 'DM Serif Display', serif;
   font-size: 22px;
   font-weight: 400;
   color: var(--text);
@@ -699,7 +609,7 @@ td code { white-space: nowrap; }
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-family: 'Instrument Serif', serif;
+  font-family: 'DM Serif Display', serif;
   font-style: italic;
   font-size: 17px;
   font-weight: 400;
@@ -724,41 +634,27 @@ td code { white-space: nowrap; }
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1100px) {
-  .layout { grid-template-columns: 240px minmax(0, 1fr); }
-  .rail { display: none; }
-  .main { padding: 40px 40px 96px 40px; }
-}
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
-  .sidebar {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    width: 280px;
-    background: var(--bg);
-    z-index: 40;
-    transform: translateX(-100%);
-    transition: transform 0.2s ease;
-    border-right: 1px solid var(--border);
-  }
-  .sidebar.open { transform: translateX(0); }
-  .menu-btn { display: grid; }
+  .rail { display: none; }
+  .main { padding: 40px 24px 96px 24px; }
+}
+@media (max-width: 600px) {
   .main { padding: 32px 20px 80px 20px; }
   .hero-title { font-size: 38px; }
   h2 { font-size: 28px; }
   .card-grid { grid-template-columns: 1fr; }
   .compare { grid-template-columns: 1fr; }
-  .brand-sub { display: none; }
+  .theme-fab { top: 16px; right: 16px; }
 }
 
 /* ---------- Scrollbar polish ---------- */
-.sidebar::-webkit-scrollbar, .rail::-webkit-scrollbar, pre::-webkit-scrollbar { width: 8px; height: 8px; }
-.sidebar::-webkit-scrollbar-thumb, .rail::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb {
+.rail::-webkit-scrollbar, pre::-webkit-scrollbar { width: 8px; height: 8px; }
+.rail::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: 4px;
 }
-.sidebar::-webkit-scrollbar-track, .rail::-webkit-scrollbar-track, pre::-webkit-scrollbar-track { background: transparent; }
+.rail::-webkit-scrollbar-track, pre::-webkit-scrollbar-track { background: transparent; }
 
 /* Focus ring */
 :focus-visible {
@@ -775,47 +671,12 @@ td code { white-space: nowrap; }
 </head>
 <body>
 
-<!-- ==================== TOPBAR ==================== -->
-<header class="topbar">
-  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Toggle menu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
-  <div class="brand">
-    <div class="brand-mark">R</div>
-    <span>ReimagineHome</span>
-    <span class="brand-sub">Widget Integration Guide</span>
-  </div>
-  <div class="topbar-right">
-    <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
-      <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-      <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    </button>
-  </div>
-</header>
+<button class="theme-fab" id="themeBtn" aria-label="Toggle theme">
+  <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+  <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
 
 <div class="layout">
-
-  <!-- ==================== SIDEBAR ==================== -->
-  <nav class="sidebar" id="sidebar">
-    <div class="sidebar-section">
-      <p class="sidebar-label">Before you integrate</p>
-      <a href="#requirements">Integration requirements</a>
-      <a href="#media-hosting">Media hosting &amp; CORS</a>
-    </div>
-    <div class="sidebar-section">
-      <p class="sidebar-label">Integrate</p>
-      <a href="#config-ref">Configuration reference</a>
-      <a href="#open-payload">The open() payload</a>
-    </div>
-    <div class="sidebar-section">
-      <p class="sidebar-label">Framework guides</p>
-      <a href="#framework-guides">All frameworks</a>
-    </div>
-    <div class="sidebar-section">
-      <p class="sidebar-label">Customize</p>
-      <a href="#branding">Styling &amp; branding</a>
-    </div>
-  </nav>
 
   <!-- ==================== MAIN ==================== -->
   <main class="main">
@@ -848,7 +709,7 @@ td code { white-space: nowrap; }
         <ol class="steps">
           <li>
             <p>Request a publishable key</p>
-            <p>Email <a href="mailto:partners@reimaginehome.ai">partners@reimaginehome.ai</a> with your partner name and the domains the widget will load on. We'll provision a publishable key (format <code>ppk_live_xxx</code>) scoped to those origins.</p>
+            <p>Email <a href="mailto:partners@styldod.com">partners@styldod.com</a> with your partner name and the domains the widget will load on. We'll provision a publishable key scoped to those origins — replace the <code>public_key</code> placeholder in your integration config.</p>
           </li>
           <li>
             <p>Load the widget</p>
@@ -860,7 +721,7 @@ td code { white-space: nowrap; }
               </div>
 <pre><code>&lt;<span class="tok-k">script</span> <span class="tok-n">async</span>
   <span class="tok-n">src</span>=<span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>
-  <span class="tok-n">data-public-key</span>=<span class="tok-s">"ppk_live_xxx"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
+  <span class="tok-n">data-public-key</span>=<span class="tok-s">"public_key"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
             </div>
             <div class="code-block">
               <div class="code-header">
@@ -991,7 +852,7 @@ td code { white-space: nowrap; }
         </p>
 
         <h3>A publishable key, scoped to your domains</h3>
-        <p>The widget authenticates each session with a publishable key issued by ReimagineHome (format <code>ppk_live_xxx</code>). The key is bound to a list of allowed origins — requests from other origins are rejected. You can have separate keys for staging and production.</p>
+        <p>The widget authenticates each session with a publishable key you set as <code>public_key</code> in <code>configure()</code> or on the script tag's <code>data-public-key</code> attribute. The key is bound to a list of allowed origins — requests from other origins are rejected. You can have separate keys for staging and production.</p>
         <p>The key is safe to ship in client code. It's not a secret, but it is enforced against your origin list, so leaked keys can't be used from elsewhere.</p>
 
         <h3 id="media-hosting">Publicly reachable media URLs</h3>
@@ -1036,7 +897,7 @@ td code { white-space: nowrap; }
                 <td><code>public_key</code></td>
                 <td class="col-type">string</td>
                 <td class="col-req req-yes">Required</td>
-                <td>Your publishable key (format <code>ppk_live_xxx</code>). Bound to your allowed origins.</td>
+                <td>Your publishable key. Set as <code>public_key</code> in configure options or <code>data-public-key</code> on the script tag. Bound to your allowed origins.</td>
               </tr>
               <tr>
                 <td><code>mode</code></td>
@@ -1093,7 +954,8 @@ td code { white-space: nowrap; }
           </div>
 <pre><code><span class="tok-n">language</span>: [
   { <span class="tok-n">code</span>: <span class="tok-s">"en-US"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United States)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (US)"</span> },
-  { <span class="tok-n">code</span>: <span class="tok-s">"pl-PL"</span>, <span class="tok-n">name</span>: <span class="tok-s">"Polish"</span>,                <span class="tok-n">nativeName</span>: <span class="tok-s">"Polski"</span> },
+  { <span class="tok-n">code</span>: <span class="tok-s">"en-GB"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United Kingdom)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (UK)"</span> },
+  { <span class="tok-n">code</span>: <span class="tok-s">"es-ES"</span>, <span class="tok-n">name</span>: <span class="tok-s">"Spanish"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"Español"</span> },
 ]</code></pre>
         </div>
       </section>
@@ -1176,8 +1038,8 @@ td code { white-space: nowrap; }
             <button class="copy-btn" data-copy>Copy</button>
           </div>
 <pre><code><span class="tok-n">media</span>: [
-  { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/listings/ostoja-wilanow/01.webp"</span> },
-  { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/listings/ostoja-wilanow/02.webp"</span> },
+  { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/listings/01.webp"</span> },
+  { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/listings/02.webp"</span> },
 ]</code></pre>
         </div>
 
@@ -1230,7 +1092,7 @@ td code { white-space: nowrap; }
               <div class="code-header"><span class="code-filename">src/widgetConfig.ts</span><button class="copy-btn" data-copy>Copy</button></div>
 <pre><code><span class="tok-k">export type</span> <span class="tok-n">ReihMediaItem</span> = { <span class="tok-n">image_url</span>: <span class="tok-k">string</span> };
 
-<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">'ppk_live_xxx'</span>; <span class="tok-c">// replace with your key</span>
+<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">'public_key'</span>; <span class="tok-c">// replace with your key</span>
 
 <span class="tok-k">export const</span> <span class="tok-n">LISTING_MEDIA</span>: <span class="tok-n">ReihMediaItem</span>[] = [
   { <span class="tok-n">image_url</span>: <span class="tok-s">'https://yoursite.com/listings/01.webp'</span> },
@@ -1566,7 +1428,7 @@ td code { white-space: nowrap; }
                 <div class="code-header"><span class="code-filename">lib/widgetConfig.ts</span><button class="copy-btn" data-copy>Copy</button></div>
 <pre><code><span class="tok-k">export type</span> <span class="tok-n">ReihMediaItem</span> = { <span class="tok-n">image_url</span>: <span class="tok-k">string</span> };
 
-<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">"ppk_live_xxx"</span>; <span class="tok-c">// replace with your key</span>
+<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">"public_key"</span>; <span class="tok-c">// replace with your key</span>
 
 <span class="tok-k">export function</span> <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">url</span>: <span class="tok-k">string</span>): <span class="tok-k">string</span> {
   <span class="tok-k">if</span> (<span class="tok-n">url</span>.<span class="tok-f">startsWith</span>(<span class="tok-s">"/"</span>) &amp;&amp; <span class="tok-k">typeof</span> <span class="tok-k">window</span> !== <span class="tok-s">"undefined"</span>) {
@@ -1840,7 +1702,7 @@ node scripts/prepare-vendor.mjs</code></pre>
               <p>Both npm and CDN paths share one module for media, branding, and open helpers.</p>
               <div class="code-block">
                 <div class="code-header"><span class="code-filename">shared.js</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-k">export var</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">"ppk_live_xxx"</span>;
+<pre><code><span class="tok-k">export var</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">"public_key"</span>;
 
 <span class="tok-k">export function</span> <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">url</span>) {
   <span class="tok-k">if</span> (<span class="tok-n">url</span>.<span class="tok-f">charAt</span>(<span class="tok-n">0</span>) === <span class="tok-s">"/"</span>) <span class="tok-k">return</span> <span class="tok-k">window</span>.<span class="tok-n">location</span>.<span class="tok-n">origin</span> + <span class="tok-n">url</span>;
@@ -2072,7 +1934,7 @@ node scripts/prepare-vendor.mjs</code></pre>
                 <div class="code-header"><span class="code-filename">src/app/widget/widget-config.ts</span><button class="copy-btn" data-copy>Copy</button></div>
 <pre><code><span class="tok-k">export type</span> <span class="tok-n">ReihMediaItem</span> = { <span class="tok-n">image_url</span>: <span class="tok-k">string</span> };
 
-<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">'ppk_live_xxx'</span>;
+<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">'public_key'</span>;
 
 <span class="tok-k">export function</span> <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">url</span>: <span class="tok-k">string</span>): <span class="tok-k">string</span> {
   <span class="tok-k">if</span> (<span class="tok-n">url</span>.<span class="tok-f">startsWith</span>(<span class="tok-s">'/'</span>)) <span class="tok-k">return</span> <span class="tok-s">`${window.location.origin}${url}`</span>;
@@ -2420,16 +2282,6 @@ node scripts/prepare-vendor.mjs</code></pre>
   }
 })();
 
-// -------- Mobile menu --------
-(function() {
-  const btn = document.getElementById('menuBtn');
-  const sidebar = document.getElementById('sidebar');
-  btn.addEventListener('click', () => sidebar.classList.toggle('open'));
-  sidebar.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => sidebar.classList.remove('open'));
-  });
-})();
-
 // -------- Copy buttons --------
 (function() {
   document.querySelectorAll('[data-copy]').forEach(btn => {
@@ -2483,21 +2335,20 @@ node scripts/prepare-vendor.mjs</code></pre>
   applyMethod(currentMethod);
 })();
 
-// -------- Scroll spy (sidebar + rail) --------
+// -------- Scroll spy (rail) --------
 (function() {
   const sections = Array.from(document.querySelectorAll('main section[id]'));
-  const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
   const railLinks = document.querySelectorAll('.rail a[href^="#"]');
+  if (!sections.length || !railLinks.length) return;
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const id = entry.target.id;
-        sidebarLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
         railLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
       }
     });
-  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
 
   sections.forEach(s => observer.observe(s));
 })();
