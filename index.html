@@ -786,7 +786,6 @@ td code { white-space: nowrap; }
     <span class="brand-sub">Widget Integration Guide</span>
   </div>
   <div class="topbar-right">
-    <span class="version-pill">v0.1 · Internal draft</span>
     <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
       <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
       <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -798,12 +797,6 @@ td code { white-space: nowrap; }
 
   <!-- ==================== SIDEBAR ==================== -->
   <nav class="sidebar" id="sidebar">
-    <div class="sidebar-section">
-      <p class="sidebar-label">Get oriented</p>
-      <a href="#overview">Overview</a>
-      <a href="#quick-start">Quick start</a>
-      <a href="#how-it-works">How the widget works</a>
-    </div>
     <div class="sidebar-section">
       <p class="sidebar-label">Before you integrate</p>
       <a href="#requirements">Integration requirements</a>
@@ -1261,13 +1254,15 @@ td code { white-space: nowrap; }
 
 <span class="tok-k">export function</span> <span class="tok-f">buildWidgetBranding</span>() {
   <span class="tok-k">return</span> {
-    <span class="tok-n">logo</span>: <span class="tok-s">'https://yoursite.com/logo.svg'</span>,
-    <span class="tok-n">text_primary</span>: <span class="tok-s">'#071121FF'</span>,
-    <span class="tok-n">text_secondary</span>: <span class="tok-s">'#1B232E'</span>,
-    <span class="tok-n">primary_color</span>: <span class="tok-s">'#3ED37A'</span>,
+    <span class="tok-n">logo</span>: <span class="tok-s">'https://ecdn.styldod.com/assets/logo/6a2bca9bce2a355c2c13d058.svg'</span>,
+    <span class="tok-n">colors</span>: {
+      <span class="tok-n">primary</span>: <span class="tok-s">'#071121FF'</span>,
+      <span class="tok-n">textPrimary</span>: <span class="tok-s">'#071121FF'</span>,
+      <span class="tok-n">textSecondary</span>: <span class="tok-s">'#1B232E'</span>,
+    },
     <span class="tok-n">heading</span>: <span class="tok-s">'Reimagine Your Space'</span>,
-    <span class="tok-n">sub_heading</span>: <span class="tok-s">'AI-powered room redesign'</span>,
-    <span class="tok-n">footer_text</span>: <span class="tok-s">''</span>,
+    <span class="tok-n">subHeading</span>: <span class="tok-s">'AI-powered room redesign'</span>,
+    <span class="tok-n">footerText</span>: <span class="tok-s">''</span>,
   };
 }
 
@@ -1306,6 +1301,7 @@ td code { white-space: nowrap; }
     <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
     <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span> <span class="tok-k">as const</span>,
     <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onComplete</span>: (<span class="tok-n">detail</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onComplete:'</span>, <span class="tok-n">detail</span>),
     <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[reih] onError:'</span>, <span class="tok-n">err</span>),
     <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onClose'</span>),
   };
@@ -1483,6 +1479,7 @@ td code { white-space: nowrap; }
     <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
     <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span> <span class="tok-k">as const</span>,
     <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onComplete</span>: (<span class="tok-n">detail</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onComplete:'</span>, <span class="tok-n">detail</span>),
     <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[reih] onError:'</span>, <span class="tok-n">err</span>),
     <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onClose'</span>),
   };
@@ -1586,12 +1583,15 @@ td code { white-space: nowrap; }
 }
 
 <span class="tok-k">const</span> <span class="tok-n">WIDGET_BRANDING</span> = {
-  <span class="tok-n">logo</span>: <span class="tok-s">"https://yoursite.com/logo.svg"</span>,
-  <span class="tok-n">text_primary</span>: <span class="tok-s">"#4C1D95"</span>,
-  <span class="tok-n">text_secondary</span>: <span class="tok-s">"#7C3AED"</span>,
+  <span class="tok-n">logo</span>: <span class="tok-s">"https://ecdn.styldod.com/assets/logo/6a2bca9bce2a355c2c13d058.svg"</span>,
+  <span class="tok-n">colors</span>: {
+    <span class="tok-n">primary</span>: <span class="tok-s">"#071121FF"</span>,
+    <span class="tok-n">textPrimary</span>: <span class="tok-s">"#071121FF"</span>,
+    <span class="tok-n">textSecondary</span>: <span class="tok-s">"#1B232E"</span>,
+  },
   <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine Your Space"</span>,
-  <span class="tok-n">sub_heading</span>: <span class="tok-s">"AI-powered room redesign"</span>,
-  <span class="tok-n">footer_text</span>: <span class="tok-s">"Powered by ReimagineHome"</span>,
+  <span class="tok-n">subHeading</span>: <span class="tok-s">"AI-powered room redesign"</span>,
+  <span class="tok-n">footerText</span>: <span class="tok-s">""</span>,
 };
 
 <span class="tok-k">export function</span> <span class="tok-f">buildNpmWidgetConfigureOptions</span>() {
@@ -1600,7 +1600,9 @@ td code { white-space: nowrap; }
     <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(<span class="tok-n">LISTING_MEDIA</span>),
     <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> <span class="tok-k">as const</span>,
     <span class="tok-n">branding</span>: <span class="tok-n">WIDGET_BRANDING</span>,
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span> <span class="tok-k">as const</span>,
     <span class="tok-n">language</span>: <span class="tok-n">WIDGET_LANGUAGE</span>,
+    <span class="tok-n">onComplete</span>: (<span class="tok-n">detail</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"Widget complete:"</span>, <span class="tok-n">detail</span>),
     <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">"Widget error:"</span>, <span class="tok-n">err</span>),
     <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"Widget closed"</span>),
   };
@@ -1752,11 +1754,12 @@ td code { white-space: nowrap; }
 
 <span class="tok-k">export function</span> <span class="tok-f">buildWidgetConfig</span>() {
   <span class="tok-k">return</span> {
-    <span class="tok-n">public_key</span>: <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
     <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(<span class="tok-n">LISTING_MEDIA</span>),
     <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> <span class="tok-k">as const</span>,
     <span class="tok-n">branding</span>: <span class="tok-n">WIDGET_BRANDING</span>,
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span> <span class="tok-k">as const</span>,
     <span class="tok-n">language</span>: <span class="tok-n">WIDGET_LANGUAGE</span>,
+    <span class="tok-n">onComplete</span>: (<span class="tok-n">detail</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"Widget complete:"</span>, <span class="tok-n">detail</span>),
     <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">"Widget error:"</span>, <span class="tok-n">err</span>),
     <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"Widget closed"</span>),
   };
@@ -1844,6 +1847,42 @@ node scripts/prepare-vendor.mjs</code></pre>
   <span class="tok-k">return</span> <span class="tok-n">url</span>;
 }
 
+<span class="tok-k">export function</span> <span class="tok-f">buildWidgetBranding</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">logo</span>: <span class="tok-s">"https://ecdn.styldod.com/assets/logo/6a2bca9bce2a355c2c13d058.svg"</span>,
+    <span class="tok-n">colors</span>: {
+      <span class="tok-n">primary</span>: <span class="tok-s">"#071121FF"</span>,
+      <span class="tok-n">textPrimary</span>: <span class="tok-s">"#071121FF"</span>,
+      <span class="tok-n">textSecondary</span>: <span class="tok-s">"#1B232E"</span>,
+    },
+    <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine Your Space"</span>,
+    <span class="tok-n">subHeading</span>: <span class="tok-s">"AI-powered room redesign"</span>,
+    <span class="tok-n">footerText</span>: <span class="tok-s">""</span>,
+  };
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">buildWidgetLanguage</span>() {
+  <span class="tok-k">return</span> [
+    { <span class="tok-n">code</span>: <span class="tok-s">"en-US"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United States)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (US)"</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">"en-GB"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United Kingdom)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (UK)"</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">"pl-PL"</span>, <span class="tok-n">name</span>: <span class="tok-s">"Polish"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"Polski"</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">"es-ES"</span>, <span class="tok-n">name</span>: <span class="tok-s">"Spanish"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"Español"</span> },
+  ];
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">buildScriptEmbedWidgetConfig</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(),
+    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onComplete</span>: (<span class="tok-n">detail</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"[reih] onComplete:"</span>, <span class="tok-n">detail</span>),
+    <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">"[reih] onError:"</span>, <span class="tok-n">err</span>),
+    <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"[reih] onClose"</span>),
+  };
+}
+
 <span class="tok-k">export function</span> <span class="tok-f">buildNpmWidgetConfigureOptions</span>() {
   <span class="tok-k">return</span> {
     <span class="tok-n">public_key</span>: <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
@@ -1852,6 +1891,7 @@ node scripts/prepare-vendor.mjs</code></pre>
     <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
     <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
     <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onComplete</span>: (<span class="tok-n">detail</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"[reih] onComplete:"</span>, <span class="tok-n">detail</span>),
     <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">"[reih] onError:"</span>, <span class="tok-n">err</span>),
     <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"[reih] onClose"</span>),
   };
@@ -2039,6 +2079,29 @@ node scripts/prepare-vendor.mjs</code></pre>
   <span class="tok-k">return</span> <span class="tok-n">url</span>;
 }
 
+<span class="tok-k">export function</span> <span class="tok-f">buildWidgetBranding</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">logo</span>: <span class="tok-s">'https://ecdn.styldod.com/assets/logo/6a2bca9bce2a355c2c13d058.svg'</span>,
+    <span class="tok-n">colors</span>: {
+      <span class="tok-n">primary</span>: <span class="tok-s">'#071121FF'</span>,
+      <span class="tok-n">textPrimary</span>: <span class="tok-s">'#071121FF'</span>,
+      <span class="tok-n">textSecondary</span>: <span class="tok-s">'#1B232E'</span>,
+    },
+    <span class="tok-n">heading</span>: <span class="tok-s">'Reimagine Your Space'</span>,
+    <span class="tok-n">subHeading</span>: <span class="tok-s">'AI-powered room redesign'</span>,
+    <span class="tok-n">footerText</span>: <span class="tok-s">''</span>,
+  };
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">buildWidgetLanguage</span>() {
+  <span class="tok-k">return</span> [
+    { <span class="tok-n">code</span>: <span class="tok-s">'en-US'</span>, <span class="tok-n">name</span>: <span class="tok-s">'English (United States)'</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">'English (US)'</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">'en-GB'</span>, <span class="tok-n">name</span>: <span class="tok-s">'English (United Kingdom)'</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">'English (UK)'</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">'pl-PL'</span>, <span class="tok-n">name</span>: <span class="tok-s">'Polish'</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">'Polski'</span> },
+    { <span class="tok-n">code</span>: <span class="tok-s">'es-ES'</span>, <span class="tok-n">name</span>: <span class="tok-s">'Spanish'</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">'Español'</span> },
+  ];
+}
+
 <span class="tok-k">export function</span> <span class="tok-f">buildNpmWidgetConfigureOptions</span>() {
   <span class="tok-k">return</span> {
     <span class="tok-n">public_key</span>: <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
@@ -2047,6 +2110,7 @@ node scripts/prepare-vendor.mjs</code></pre>
     <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
     <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span> <span class="tok-k">as const</span>,
     <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onComplete</span>: (<span class="tok-n">detail</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onComplete:'</span>, <span class="tok-n">detail</span>),
     <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[reih] onError:'</span>, <span class="tok-n">err</span>),
     <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onClose'</span>),
   };
@@ -2213,6 +2277,7 @@ node scripts/prepare-vendor.mjs</code></pre>
     <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
     <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span> <span class="tok-k">as const</span>,
     <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onComplete</span>: (<span class="tok-n">detail</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onComplete:'</span>, <span class="tok-n">detail</span>),
     <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[reih] onError:'</span>, <span class="tok-n">err</span>),
     <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onClose'</span>),
   };
@@ -2312,8 +2377,7 @@ node scripts/prepare-vendor.mjs</code></pre>
       </section>
 
       <footer class="footer">
-        <div>ReimagineHome Widget · Integration Guide · v0.1</div>
-        <div>Internal draft — not for partner distribution</div>
+        <div>ReimagineHome Widget · Integration Guide</div>
       </footer>
 
     </div>
