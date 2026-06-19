@@ -1558,136 +1558,246 @@ td code { white-space: nowrap; }
 <pre><code>npm install reimaginehome-widget</code></pre>
               </div>
 
-              <h4>2. Configure in a client provider</h4>
-              <p>The widget is browser-only. In App Router, wrap configuration in a client component and mount it once at the root layout.</p>
+              <div class="callout callout-warn">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+                <p><strong>Server vs client.</strong> The widget cannot be imported in a server component. Every file that imports <code>reihWidget</code> must start with <code>"use client"</code>.</p>
+              </div>
+
+              <h4>2. Shared widget config</h4>
+              <p>Keep media, branding, and helpers in one module. The npm path puts <code>public_key</code> inside <code>configure()</code>.</p>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">app/providers/ReihProvider.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-s">"use client"</span>;
+                <div class="code-header"><span class="code-filename">lib/widgetConfig.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">export type</span> <span class="tok-n">ReihMediaItem</span> = { <span class="tok-n">image_url</span>: <span class="tok-k">string</span> };
 
-<span class="tok-k">import</span> { <span class="tok-n">useEffect</span> } <span class="tok-k">from</span> <span class="tok-s">"react"</span>;
-<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
+<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">"ppk_live_xxx"</span>; <span class="tok-c">// replace with your key</span>
 
-<span class="tok-k">export function</span> <span class="tok-f">ReihProvider</span>({ <span class="tok-n">children</span> }) {
-  <span class="tok-f">useEffect</span>(() =&gt; {
-    <span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>({
-      <span class="tok-n">public_key</span>: <span class="tok-f">process</span>.<span class="tok-n">env</span>.<span class="tok-n">NEXT_PUBLIC_REIH_KEY</span>!,
-      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
-      <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
-      <span class="tok-n">language</span>: [
-        { <span class="tok-n">code</span>: <span class="tok-s">"en-US"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United States)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (US)"</span> },
-      ],
-      <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
-    });
-    <span class="tok-k">return</span> () =&gt; <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
-  }, []);
+<span class="tok-k">export function</span> <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">url</span>: <span class="tok-k">string</span>): <span class="tok-k">string</span> {
+  <span class="tok-k">if</span> (<span class="tok-n">url</span>.<span class="tok-f">startsWith</span>(<span class="tok-s">"/"</span>) &amp;&amp; <span class="tok-k">typeof</span> <span class="tok-k">window</span> !== <span class="tok-s">"undefined"</span>) {
+    <span class="tok-k">return</span> <span class="tok-s">`${window.location.origin}${url}`</span>;
+  }
+  <span class="tok-k">return</span> <span class="tok-n">url</span>;
+}
 
-  <span class="tok-k">return</span> &lt;&gt;{<span class="tok-n">children</span>}&lt;/&gt;;
+<span class="tok-k">export function</span> <span class="tok-f">resolveListingMedia</span>(<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]) {
+  <span class="tok-k">return</span> <span class="tok-n">media</span>.<span class="tok-f">map</span>((<span class="tok-n">item</span>) =&gt; ({
+    ...<span class="tok-n">item</span>,
+    <span class="tok-n">image_url</span>: <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">item</span>.<span class="tok-n">image_url</span>),
+  }));
+}
+
+<span class="tok-k">const</span> <span class="tok-n">WIDGET_BRANDING</span> = {
+  <span class="tok-n">logo</span>: <span class="tok-s">"https://yoursite.com/logo.svg"</span>,
+  <span class="tok-n">text_primary</span>: <span class="tok-s">"#4C1D95"</span>,
+  <span class="tok-n">text_secondary</span>: <span class="tok-s">"#7C3AED"</span>,
+  <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine Your Space"</span>,
+  <span class="tok-n">sub_heading</span>: <span class="tok-s">"AI-powered room redesign"</span>,
+  <span class="tok-n">footer_text</span>: <span class="tok-s">"Powered by ReimagineHome"</span>,
+};
+
+<span class="tok-k">export function</span> <span class="tok-f">buildNpmWidgetConfigureOptions</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">public_key</span>: <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+    <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(<span class="tok-n">LISTING_MEDIA</span>),
+    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">branding</span>: <span class="tok-n">WIDGET_BRANDING</span>,
+    <span class="tok-n">language</span>: <span class="tok-n">WIDGET_LANGUAGE</span>,
+    <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">"Widget error:"</span>, <span class="tok-n">err</span>),
+    <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"Widget closed"</span>),
+  };
 }</code></pre>
               </div>
 
-              <h4>3. Wire it into the root layout</h4>
+              <h4>3. Webpack dev loader (optional)</h4>
+              <p>The npm package ships with production URLs baked in. Add a custom webpack loader to point at dev during local testing:</p>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">app/layout.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-k">import</span> { <span class="tok-n">ReihProvider</span> } <span class="tok-k">from</span> <span class="tok-s">"./providers/ReihProvider"</span>;
+                <div class="code-header"><span class="code-filename">next.config.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> <span class="tok-k">type</span> { <span class="tok-n">NextConfig</span> } <span class="tok-k">from</span> <span class="tok-s">"next"</span>;
+<span class="tok-k">import</span> <span class="tok-n">path</span> <span class="tok-k">from</span> <span class="tok-s">"path"</span>;
 
-<span class="tok-k">export default function</span> <span class="tok-f">RootLayout</span>({ <span class="tok-n">children</span> }) {
+<span class="tok-k">const</span> <span class="tok-n">nextConfig</span>: <span class="tok-n">NextConfig</span> = {
+  <span class="tok-f">webpack</span>(<span class="tok-n">config</span>) {
+    <span class="tok-n">config</span>.<span class="tok-n">module</span>.<span class="tok-n">rules</span>.<span class="tok-f">push</span>({
+      <span class="tok-n">test</span>: <span class="tok-s">/node_modules[/\\]reimaginehome-widget[/\\]dist[/\\].+\.js$/</span>,
+      <span class="tok-n">use</span>: <span class="tok-n">path</span>.<span class="tok-f">join</span>(<span class="tok-n">process</span>.<span class="tok-n">cwd</span>(), <span class="tok-s">"loaders/reih-widget-dev-env-loader.cjs"</span>),
+    });
+    <span class="tok-k">return</span> <span class="tok-n">config</span>;
+  },
+};
+
+<span class="tok-k">export default</span> <span class="tok-n">nextConfig</span>;</code></pre>
+              </div>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">loaders/reih-widget-dev-env-loader.cjs</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-c">/** Rewrites reimaginehome-widget prod URLs to dev at bundle time */</span>
+<span class="tok-n">module</span>.<span class="tok-n">exports</span> = <span class="tok-k">function</span> <span class="tok-f">reihWidgetDevEnvLoader</span>(<span class="tok-n">source</span>) {
+  <span class="tok-k">return</span> <span class="tok-n">source</span>
+    .<span class="tok-f">replaceAll</span>(<span class="tok-n">WIDGET_PROD_API_BASE_URL</span>, <span class="tok-n">WIDGET_DEV_API_BASE_URL</span>)
+    .<span class="tok-f">replaceAll</span>(<span class="tok-n">WIDGET_PROD_APP_URL</span>, <span class="tok-n">WIDGET_DEV_APP_URL</span>)
+    .<span class="tok-f">replace</span>(<span class="tok-s">'return "prod"'</span>, <span class="tok-s">'return "dev"'</span>);
+};</code></pre>
+              </div>
+
+              <h4>4. Configure and open in a client component</h4>
+              <p>Widget lifecycle lives in a route-scoped client component — not a global root provider. Configure on mount, destroy on unmount.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">components/PackageIntegration.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-s">"use client"</span>;
+
+<span class="tok-k">import</span> { <span class="tok-n">useCallback</span>, <span class="tok-n">useEffect</span> } <span class="tok-k">from</span> <span class="tok-s">"react"</span>;
+<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
+<span class="tok-k">import</span> {
+  <span class="tok-n">buildNpmWidgetConfigureOptions</span>,
+  <span class="tok-n">resolveListingMedia</span>,
+  <span class="tok-n">resolveMediaUrl</span>,
+  <span class="tok-k">type</span> <span class="tok-n">ReihMediaItem</span>,
+} <span class="tok-k">from</span> <span class="tok-s">"@/lib/widgetConfig"</span>;
+
+<span class="tok-k">export function</span> <span class="tok-f">PackageIntegration</span>() {
+  <span class="tok-f">useEffect</span>(() =&gt; {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>(<span class="tok-f">buildNpmWidgetConfigureOptions</span>());
+    <span class="tok-k">return</span> () =&gt; <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+  }, []);
+
+  <span class="tok-k">const</span> <span class="tok-n">openWidget</span> = <span class="tok-f">useCallback</span>(<span class="tok-k">async</span> (<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]) =&gt; {
+    <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
+      <span class="tok-n">media</span>: <span class="tok-n">media</span>.<span class="tok-f">map</span>((<span class="tok-n">item</span>) =&gt; ({
+        ...<span class="tok-n">item</span>,
+        <span class="tok-n">image_url</span>: <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">item</span>.<span class="tok-n">image_url</span>),
+      })),
+    });
+  }, []);
+
+  <span class="tok-k">const</span> <span class="tok-n">handleOpenAll</span> = <span class="tok-f">useCallback</span>(() =&gt; {
+    <span class="tok-k">void</span> <span class="tok-n">openWidget</span>(<span class="tok-f">resolveListingMedia</span>(<span class="tok-n">LISTING_MEDIA</span>));
+  }, [<span class="tok-n">openWidget</span>]);
+
+  <span class="tok-k">const</span> <span class="tok-n">handleOpenSingle</span> = <span class="tok-f">useCallback</span>(
+    (<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>) =&gt; { <span class="tok-k">void</span> <span class="tok-n">openWidget</span>([<span class="tok-n">media</span>]); },
+    [<span class="tok-n">openWidget</span>],
+  );
+
   <span class="tok-k">return</span> (
-    &lt;<span class="tok-k">html</span>&gt;
-      &lt;<span class="tok-k">body</span>&gt;
-        &lt;<span class="tok-n">ReihProvider</span>&gt;{<span class="tok-n">children</span>}&lt;/<span class="tok-n">ReihProvider</span>&gt;
-      &lt;/<span class="tok-k">body</span>&gt;
-    &lt;/<span class="tok-k">html</span>&gt;
+    &lt;<span class="tok-k">ListingDemoPage</span>
+      <span class="tok-n">onOpenAll</span>={<span class="tok-n">handleOpenAll</span>}
+      <span class="tok-n">onOpenSingle</span>={<span class="tok-n">handleOpenSingle</span>}
+    /&gt;
   );
 }</code></pre>
               </div>
 
-              <h4>4. Open from a client component</h4>
+              <h4>5. Mount on a route</h4>
+              <p>The App Router page stays a server component — it just renders the client integration component.</p>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">app/listings/[id]/ReimagineButton.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-s">"use client"</span>;
+                <div class="code-header"><span class="code-filename">app/package/page.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">PackageIntegration</span> } <span class="tok-k">from</span> <span class="tok-s">"@/components/PackageIntegration"</span>;
 
-<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
-
-<span class="tok-k">type</span> <span class="tok-n">Photo</span> = { <span class="tok-n">id</span>: <span class="tok-n">string</span>; <span class="tok-n">publicUrl</span>: <span class="tok-n">string</span>; <span class="tok-n">label</span>?: <span class="tok-n">string</span> };
-
-<span class="tok-k">export function</span> <span class="tok-f">ReimagineButton</span>({ <span class="tok-n">photos</span> }: { <span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[] }) {
-  <span class="tok-k">const</span> <span class="tok-n">openAll</span> = <span class="tok-k">async</span> () =&gt; {
-    <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
-    <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
-      <span class="tok-n">media</span>: <span class="tok-n">photos</span>.<span class="tok-f">map</span>((<span class="tok-n">p</span>) =&gt; ({ <span class="tok-n">image_url</span>: <span class="tok-n">p</span>.<span class="tok-n">publicUrl</span> })),
-      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
-    });
-  };
-
-  <span class="tok-k">return</span> &lt;<span class="tok-k">button</span> <span class="tok-n">onClick</span>={<span class="tok-n">openAll</span>}&gt;Reimagine this space&lt;/<span class="tok-k">button</span>&gt;;
+<span class="tok-k">export default function</span> <span class="tok-f">PackagePage</span>() {
+  <span class="tok-k">return</span> &lt;<span class="tok-n">PackageIntegration</span> /&gt;;
 }</code></pre>
               </div>
 
-              <div class="callout callout-warn">
-                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
-                <p><strong>Server vs client.</strong> The widget cannot be imported in a server component. Every file that imports <code>reihWidget</code> must start with <code>"use client"</code>. If you forget, you'll see a server-runtime error referencing <code>window</code>.</p>
+              <div class="callout callout-info">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p><strong>npm pattern.</strong> No root layout provider — widget config is scoped to the listing route. <code>open()</code> passes only <code>media</code> (branding and language come from <code>configure()</code>). Use <code>resolveMediaUrl()</code> so <code>/public</code> image paths become absolute URLs.</p>
               </div>
             </div>
 
             <!-- =========== Next.js × CDN =========== -->
             <div class="method-content" data-method="cdn">
-              <p class="method-note">For Next.js, the npm path is the natural fit. Use the CDN path only if you specifically want the widget loaded outside your bundle.</p>
+              <p class="method-note">This integration injects <code>widget.js</code> dynamically from a client component — not via <code>next/script</code> in the root layout. Useful when you want the script only on specific routes.</p>
 
-              <h4>1. Load the script in your root layout</h4>
-              <p>Use Next.js's <code>&lt;Script&gt;</code> component so the loader survives client-side navigation. Set persistent config with a <code>beforeInteractive</code> inline script.</p>
+              <h4>1. Set config and inject the script</h4>
+              <p>On mount, assign <code>window.reihWidgetConfig</code> and append the script tag with <code>data-public-key</code>.</p>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">app/layout.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-k">import</span> <span class="tok-n">Script</span> <span class="tok-k">from</span> <span class="tok-s">"next/script"</span>;
+                <div class="code-header"><span class="code-filename">components/ScriptEmbedIntegration.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-s">"use client"</span>;
 
-<span class="tok-k">export default function</span> <span class="tok-f">RootLayout</span>({ <span class="tok-n">children</span> }) {
-  <span class="tok-k">return</span> (
-    &lt;<span class="tok-k">html</span>&gt;
-      &lt;<span class="tok-k">body</span>&gt;
-        &lt;<span class="tok-n">Script</span> <span class="tok-n">id</span>=<span class="tok-s">"reih-config"</span> <span class="tok-n">strategy</span>=<span class="tok-s">"beforeInteractive"</span>&gt;
-          {<span class="tok-s">`window.reihWidgetConfig = {
-            mode: "simple",
-            branding: { primary_color: "#1F6F4A", heading: "Reimagine this space" },
-            sidebar_position: "right",
-          };`</span>}
-        &lt;/<span class="tok-n">Script</span>&gt;
-        &lt;<span class="tok-n">Script</span>
-          <span class="tok-n">src</span>=<span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>
-          <span class="tok-n">strategy</span>=<span class="tok-s">"afterInteractive"</span>
-          <span class="tok-n">data-public-key</span>={<span class="tok-f">process</span>.<span class="tok-n">env</span>.<span class="tok-n">NEXT_PUBLIC_REIH_KEY</span>}
-        /&gt;
-        {<span class="tok-n">children</span>}
-      &lt;/<span class="tok-k">body</span>&gt;
-    &lt;/<span class="tok-k">html</span>&gt;
-  );
+<span class="tok-k">import</span> { <span class="tok-n">useCallback</span>, <span class="tok-n">useEffect</span> } <span class="tok-k">from</span> <span class="tok-s">"react"</span>;
+<span class="tok-k">import</span> {
+  <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+  <span class="tok-n">WIDGET_SCRIPT_URL</span>,
+  <span class="tok-n">buildWidgetConfig</span>,
+  <span class="tok-n">resolveListingMedia</span>,
+  <span class="tok-n">resolveMediaUrl</span>,
+  <span class="tok-k">type</span> <span class="tok-n">ReihMediaItem</span>,
+} <span class="tok-k">from</span> <span class="tok-s">"@/lib/widgetConfig"</span>;
+
+<span class="tok-k">const</span> <span class="tok-n">WIDGET_SCRIPT_ID</span> = <span class="tok-s">"reih-widget-script"</span>;
+
+<span class="tok-k">export function</span> <span class="tok-f">ScriptEmbedIntegration</span>() {
+  <span class="tok-f">useEffect</span>(() =&gt; {
+    <span class="tok-k">window</span>.<span class="tok-n">reihWidgetConfig</span> = <span class="tok-f">buildWidgetConfig</span>();
+  }, []);
+
+  <span class="tok-f">useEffect</span>(() =&gt; {
+    <span class="tok-k">if</span> (<span class="tok-n">document</span>.<span class="tok-f">getElementById</span>(<span class="tok-n">WIDGET_SCRIPT_ID</span>)) <span class="tok-k">return</span>;
+
+    <span class="tok-k">const</span> <span class="tok-n">script</span> = <span class="tok-n">document</span>.<span class="tok-f">createElement</span>(<span class="tok-s">"script"</span>);
+    <span class="tok-n">script</span>.<span class="tok-n">id</span> = <span class="tok-n">WIDGET_SCRIPT_ID</span>;
+    <span class="tok-n">script</span>.<span class="tok-n">src</span> = <span class="tok-s">`${WIDGET_SCRIPT_URL}?v=${Date.now()}`</span>;
+    <span class="tok-n">script</span>.<span class="tok-n">async</span> = <span class="tok-k">true</span>;
+    <span class="tok-n">script</span>.<span class="tok-f">setAttribute</span>(<span class="tok-s">"data-public-key"</span>, <span class="tok-n">WIDGET_PUBLIC_KEY</span>);
+    <span class="tok-n">document</span>.<span class="tok-n">body</span>.<span class="tok-f">appendChild</span>(<span class="tok-n">script</span>);
+  }, []);
+
+  <span class="tok-c">// ... openWidget, handleOpenAll, handleOpenSingle — see step 2</span>
 }</code></pre>
               </div>
 
-              <h4>2. Trigger from a client component</h4>
-              <p>Access the global loader from a client-side button handler.</p>
+              <p>Add the CDN script URL and shared config builder to <code>lib/widgetConfig.ts</code>:</p>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">app/listings/[id]/ReimagineButton.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-s">"use client"</span>;
+                <div class="code-header"><span class="code-filename">lib/widgetConfig.ts (CDN additions)</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">export const</span> <span class="tok-n">WIDGET_SCRIPT_URL</span> =
+  <span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>;
 
-<span class="tok-k">declare global</span> {
-  <span class="tok-k">interface</span> <span class="tok-n">Window</span> { <span class="tok-n">reihWidget</span>?: <span class="tok-k">any</span>; }
-}
-
-<span class="tok-k">type</span> <span class="tok-n">Photo</span> = { <span class="tok-n">id</span>: <span class="tok-n">string</span>; <span class="tok-n">publicUrl</span>: <span class="tok-n">string</span> };
-
-<span class="tok-k">export function</span> <span class="tok-f">ReimagineButton</span>({ <span class="tok-n">photos</span> }: { <span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[] }) {
-  <span class="tok-k">const</span> <span class="tok-n">openAll</span> = <span class="tok-k">async</span> () =&gt; {
-    <span class="tok-k">while</span> (!<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) {
-      <span class="tok-k">await new</span> <span class="tok-f">Promise</span>((<span class="tok-n">r</span>) =&gt; <span class="tok-f">setTimeout</span>(<span class="tok-n">r</span>, <span class="tok-s">50</span>));
-    }
-    <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>?.();
-    <span class="tok-k">await</span> <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
-      <span class="tok-n">media</span>: <span class="tok-n">photos</span>.<span class="tok-f">map</span>((<span class="tok-n">p</span>) =&gt; ({ <span class="tok-n">image_url</span>: <span class="tok-n">p</span>.<span class="tok-n">publicUrl</span> })),
-      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
-    });
+<span class="tok-k">export function</span> <span class="tok-f">buildWidgetConfig</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">public_key</span>: <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+    <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(<span class="tok-n">LISTING_MEDIA</span>),
+    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">branding</span>: <span class="tok-n">WIDGET_BRANDING</span>,
+    <span class="tok-n">language</span>: <span class="tok-n">WIDGET_LANGUAGE</span>,
+    <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">"Widget error:"</span>, <span class="tok-n">err</span>),
+    <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"Widget closed"</span>),
   };
-
-  <span class="tok-k">return</span> &lt;<span class="tok-k">button</span> <span class="tok-n">onClick</span>={<span class="tok-n">openAll</span>}&gt;Reimagine this space&lt;/<span class="tok-k">button</span>&gt;;
 }</code></pre>
+              </div>
+
+              <h4>2. Open via the global loader</h4>
+              <p>Guard that <code>window.reihWidget</code> is ready, then pass resolved media to <code>open()</code>.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">components/ScriptEmbedIntegration.tsx (open flow)</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">const</span> <span class="tok-n">openWidget</span> = <span class="tok-f">useCallback</span>(<span class="tok-k">async</span> (<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]) =&gt; {
+  <span class="tok-k">if</span> (!<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) {
+    <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">"[script-embed] reihWidget is not available yet"</span>);
+    <span class="tok-k">return</span>;
+  }
+  <span class="tok-k">await</span> <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
+    <span class="tok-n">media</span>: <span class="tok-n">media</span>.<span class="tok-f">map</span>((<span class="tok-n">item</span>) =&gt; ({
+      ...<span class="tok-n">item</span>,
+      <span class="tok-n">image_url</span>: <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">item</span>.<span class="tok-n">image_url</span>),
+    })),
+  });
+}, []);
+
+<span class="tok-k">const</span> <span class="tok-n">handleOpenAll</span> = <span class="tok-f">useCallback</span>(() =&gt; {
+  <span class="tok-k">void</span> <span class="tok-n">openWidget</span>(<span class="tok-f">resolveListingMedia</span>(<span class="tok-n">LISTING_MEDIA</span>));
+}, [<span class="tok-n">openWidget</span>]);</code></pre>
+              </div>
+
+              <h4>3. Mount on a route</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">app/script-embed/page.tsx</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">ScriptEmbedIntegration</span> } <span class="tok-k">from</span> <span class="tok-s">"@/components/ScriptEmbedIntegration"</span>;
+
+<span class="tok-k">export default function</span> <span class="tok-f">ScriptEmbedPage</span>() {
+  <span class="tok-k">return</span> &lt;<span class="tok-n">ScriptEmbedIntegration</span> /&gt;;
+}</code></pre>
+              </div>
+
+              <div class="callout callout-info">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p><strong>CDN vs npm.</strong> CDN uses <code>window.reihWidget</code> and dynamic script injection. npm imports <code>reihWidget</code> directly. Neither path uses a root layout provider — both are route-scoped client components sharing the same listing UI.</p>
               </div>
             </div>
           </div>
@@ -1701,97 +1811,186 @@ td code { white-space: nowrap; }
 
             <!-- =========== Vanilla × npm =========== -->
             <div class="method-content" data-method="npm">
-              <p class="method-note">For vanilla JS / HTML the CDN script is the natural choice — switch above. The npm path only makes sense if you have a build step (esbuild, Parcel, Webpack) and want the widget bundled with your other code.</p>
+              <p class="method-note">This project uses native ES modules — no bundler required. The npm package is vendored into <code>vendor/</code> and imported as a static file, with prod URLs patched to dev for local testing.</p>
 
-              <h4>1. Install</h4>
+              <h4>1. Install and vendor the package</h4>
               <div class="code-block">
                 <div class="code-header"><span class="code-filename">terminal</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code>npm install reimaginehome-widget</code></pre>
+<pre><code>npm install reimaginehome-widget
+node scripts/prepare-vendor.mjs</code></pre>
+              </div>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">scripts/prepare-vendor.mjs</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-c">/** Copies reimaginehome-widget from node_modules and patches prod URLs to dev */</span>
+<span class="tok-k">import</span> <span class="tok-n">fs</span> <span class="tok-k">from</span> <span class="tok-s">"node:fs"</span>;
+
+<span class="tok-k">var</span> <span class="tok-n">code</span> = <span class="tok-n">fs</span>.<span class="tok-f">readFileSync</span>(<span class="tok-s">"node_modules/reimaginehome-widget/dist/index.js"</span>, <span class="tok-s">"utf8"</span>);
+<span class="tok-n">code</span> = <span class="tok-n">code</span>
+  .<span class="tok-f">replaceAll</span>(<span class="tok-n">WIDGET_PROD_API_BASE_URL</span>, <span class="tok-n">WIDGET_DEV_API_BASE_URL</span>)
+  .<span class="tok-f">replaceAll</span>(<span class="tok-n">WIDGET_PROD_APP_URL</span>, <span class="tok-n">WIDGET_DEV_APP_URL</span>)
+  .<span class="tok-f">replace</span>(<span class="tok-s">'return "prod"'</span>, <span class="tok-s">'return "dev"'</span>);
+
+<span class="tok-n">fs</span>.<span class="tok-f">writeFileSync</span>(<span class="tok-s">"vendor/reimaginehome-widget.js"</span>, <span class="tok-n">code</span>);</code></pre>
               </div>
 
-              <h4>2. Configure and open</h4>
-              <p>Import the loader, configure once on page load, and wire your button.</p>
+              <h4>2. Shared config and helpers</h4>
+              <p>Both npm and CDN paths share one module for media, branding, and open helpers.</p>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">main.js (built &amp; bundled)</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
+                <div class="code-header"><span class="code-filename">shared.js</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">export var</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">"ppk_live_xxx"</span>;
 
-<span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>({
-  <span class="tok-n">public_key</span>: <span class="tok-s">"ppk_live_xxx"</span>,
-  <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
-  <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
-  <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
-});
+<span class="tok-k">export function</span> <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">url</span>) {
+  <span class="tok-k">if</span> (<span class="tok-n">url</span>.<span class="tok-f">charAt</span>(<span class="tok-n">0</span>) === <span class="tok-s">"/"</span>) <span class="tok-k">return</span> <span class="tok-k">window</span>.<span class="tok-n">location</span>.<span class="tok-n">origin</span> + <span class="tok-n">url</span>;
+  <span class="tok-k">return</span> <span class="tok-n">url</span>;
+}
 
-<span class="tok-f">document</span>.<span class="tok-f">getElementById</span>(<span class="tok-s">"reih-open"</span>).<span class="tok-n">onclick</span> = <span class="tok-k">async</span> () =&gt; {
-  <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
-  <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
-    <span class="tok-n">media</span>: [
-      { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/photos/01.webp"</span> },
-      { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/photos/02.webp"</span> },
-    ],
+<span class="tok-k">export function</span> <span class="tok-f">buildNpmWidgetConfigureOptions</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">public_key</span>: <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+    <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(),
     <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">"[reih] onError:"</span>, <span class="tok-n">err</span>),
+    <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">"[reih] onClose"</span>),
+  };
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">openReihWithMedia</span>(<span class="tok-n">widget</span>, <span class="tok-n">media</span>) {
+  <span class="tok-f">clearReihLoader</span>();
+  <span class="tok-k">return</span> <span class="tok-n">widget</span>.<span class="tok-f">open</span>({
+    <span class="tok-n">media</span>: <span class="tok-n">media</span>.<span class="tok-f">map</span>((<span class="tok-n">item</span>) =&gt; ({ <span class="tok-n">image_url</span>: <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">item</span>.<span class="tok-n">image_url</span>) })),
+    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
   });
-};</code></pre>
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">createWidgetOpener</span>(<span class="tok-n">getWidget</span>, <span class="tok-n">logPrefix</span>) {
+  <span class="tok-k">var</span> <span class="tok-n">opening</span> = <span class="tok-k">false</span>;
+  <span class="tok-k">return function</span> <span class="tok-f">openWidget</span>(<span class="tok-n">media</span>) {
+    <span class="tok-k">if</span> (<span class="tok-n">opening</span>) <span class="tok-k">return</span>;
+    <span class="tok-n">opening</span> = <span class="tok-k">true</span>;
+    <span class="tok-n">Promise</span>.<span class="tok-f">resolve</span>(<span class="tok-f">getWidget</span>())
+      .<span class="tok-f">then</span>((<span class="tok-n">widget</span>) =&gt; <span class="tok-f">openReihWithMedia</span>(<span class="tok-n">widget</span>, <span class="tok-n">media</span>))
+      .<span class="tok-f">catch</span>((<span class="tok-n">err</span>) =&gt; { <span class="tok-f">clearReihLoader</span>(); <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-n">logPrefix</span>, <span class="tok-n">err</span>); })
+      .<span class="tok-f">finally</span>(() =&gt; { <span class="tok-n">opening</span> = <span class="tok-k">false</span>; });
+  };
+}</code></pre>
+              </div>
+
+              <h4>3. Configure and wire the listing page</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">package.js</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"./vendor/reimaginehome-widget.js"</span>;
+<span class="tok-k">import</span> {
+  <span class="tok-n">applyHostCssVars</span>,
+  <span class="tok-n">buildNpmWidgetConfigureOptions</span>,
+  <span class="tok-n">clearReihLoader</span>,
+  <span class="tok-n">createWidgetOpener</span>,
+  <span class="tok-n">initListingPage</span>,
+} <span class="tok-k">from</span> <span class="tok-s">"./shared.js"</span>;
+
+<span class="tok-k">var</span> <span class="tok-n">openWidget</span> = <span class="tok-f">createWidgetOpener</span>(() =&gt; <span class="tok-n">Promise</span>.<span class="tok-f">resolve</span>(<span class="tok-n">reihWidget</span>), <span class="tok-s">"[package]"</span>);
+
+<span class="tok-n">document</span>.<span class="tok-f">addEventListener</span>(<span class="tok-s">"DOMContentLoaded"</span>, <span class="tok-k">function</span> () {
+  <span class="tok-f">applyHostCssVars</span>();
+  <span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>(<span class="tok-f">buildNpmWidgetConfigureOptions</span>());
+  <span class="tok-f">initListingPage</span>({ <span class="tok-n">openWidget</span>: <span class="tok-n">openWidget</span>, <span class="tok-n">logPrefix</span>: <span class="tok-s">"[package]"</span> });
+
+  <span class="tok-k">window</span>.<span class="tok-f">addEventListener</span>(<span class="tok-s">"beforeunload"</span>, <span class="tok-k">function</span> () {
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+    <span class="tok-f">clearReihLoader</span>();
+  });
+});</code></pre>
+              </div>
+
+              <h4>4. Mount the module in HTML</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">package.html</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>&lt;<span class="tok-k">section</span> <span class="tok-n">id</span>=<span class="tok-s">"hero"</span> <span class="tok-n">class</span>=<span class="tok-s">"hero"</span>&gt;&lt;/<span class="tok-k">section</span>&gt;
+&lt;<span class="tok-k">div</span> <span class="tok-n">class</span>=<span class="tok-s">"gallery"</span> <span class="tok-n">id</span>=<span class="tok-s">"gallery-grid"</span>&gt;&lt;/<span class="tok-k">div</span>&gt;
+&lt;<span class="tok-k">button</span> <span class="tok-n">type</span>=<span class="tok-s">"button"</span> <span class="tok-n">id</span>=<span class="tok-s">"open-btn"</span>&gt;Open ReimagineHome Widget (all photos)&lt;/<span class="tok-k">button</span>&gt;
+
+&lt;<span class="tok-k">script</span> <span class="tok-n">type</span>=<span class="tok-s">"module"</span> <span class="tok-n">src</span>=<span class="tok-s">"package.js"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
+              </div>
+
+              <div class="callout callout-info">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p><strong>npm pattern.</strong> Import from a vendored <code>vendor/reimaginehome-widget.js</code> so static hosting works without a bundler. <code>initListingPage()</code> renders photo frames and wires hero, gallery, and bottom buttons. Destroy on <code>beforeunload</code>, not before each open.</p>
               </div>
             </div>
 
             <!-- =========== Vanilla × CDN =========== -->
             <div class="method-content" data-method="cdn">
-              <h4>1. Load the script</h4>
-              <p>Drop the script tag in your <code>&lt;head&gt;</code> with <code>async</code>. Set your config in a small inline script <em>before</em> the widget loads. The publishable key goes on the script tag's <code>data-public-key</code> attribute.</p>
+              <p class="method-note">CDN injects <code>widget.js</code> dynamically from JavaScript — no static <code>&lt;script src&gt;</code> in the HTML head. Uses the same <code>shared.js</code> helpers as the npm path.</p>
+
+              <h4>1. Set config and inject the script</h4>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">listing.html</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code>&lt;<span class="tok-k">script</span>&gt;
-  <span class="tok-k">window</span>.<span class="tok-n">reihWidgetConfig</span> = {
-    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
-    <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
-    <span class="tok-n">language</span>: [
-      { <span class="tok-n">code</span>: <span class="tok-s">"en-US"</span>, <span class="tok-n">name</span>: <span class="tok-s">"English (United States)"</span>, <span class="tok-n">nativeName</span>: <span class="tok-s">"English (US)"</span> },
-    ],
-    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
-  };
-&lt;/<span class="tok-k">script</span>&gt;
-&lt;<span class="tok-k">script</span> <span class="tok-n">async</span>
-  <span class="tok-n">src</span>=<span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>
-  <span class="tok-n">data-public-key</span>=<span class="tok-s">"ppk_live_xxx"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
+                <div class="code-header"><span class="code-filename">script-embed.js</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> {
+  <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+  <span class="tok-n">applyHostCssVars</span>,
+  <span class="tok-n">buildScriptEmbedWidgetConfig</span>,
+  <span class="tok-n">clearReihLoader</span>,
+  <span class="tok-n">createWidgetOpener</span>,
+  <span class="tok-n">initListingPage</span>,
+} <span class="tok-k">from</span> <span class="tok-s">"./shared.js"</span>;
+
+<span class="tok-k">var</span> <span class="tok-n">WIDGET_SCRIPT_URL</span> =
+  <span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>;
+<span class="tok-k">var</span> <span class="tok-n">WIDGET_SCRIPT_ID</span> = <span class="tok-s">"reih-widget-script"</span>;
+
+<span class="tok-k">function</span> <span class="tok-f">waitForReihWidget</span>(<span class="tok-n">timeoutMs</span>) {
+  <span class="tok-k">if</span> (<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) <span class="tok-k">return</span> <span class="tok-n">Promise</span>.<span class="tok-f">resolve</span>(<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>);
+  <span class="tok-k">return new</span> <span class="tok-n">Promise</span>(<span class="tok-k">function</span> (<span class="tok-n">resolve</span>, <span class="tok-n">reject</span>) {
+    <span class="tok-k">var</span> <span class="tok-n">poller</span> = <span class="tok-n">setInterval</span>(<span class="tok-k">function</span> () {
+      <span class="tok-k">if</span> (<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) { <span class="tok-f">clearInterval</span>(<span class="tok-n">poller</span>); <span class="tok-f">resolve</span>(<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>); }
+    }, <span class="tok-n">50</span>);
+    <span class="tok-n">setTimeout</span>(<span class="tok-k">function</span> () { <span class="tok-f">clearInterval</span>(<span class="tok-n">poller</span>); <span class="tok-f">reject</span>(<span class="tok-k">new</span> <span class="tok-n">Error</span>(<span class="tok-s">"Widget script did not load"</span>)); }, <span class="tok-n">timeoutMs</span> || <span class="tok-n">30000</span>);
+  });
+}
+
+<span class="tok-k">function</span> <span class="tok-f">loadWidgetScript</span>() {
+  <span class="tok-k">if</span> (<span class="tok-n">document</span>.<span class="tok-f">getElementById</span>(<span class="tok-n">WIDGET_SCRIPT_ID</span>)) <span class="tok-k">return</span>;
+  <span class="tok-k">var</span> <span class="tok-n">script</span> = <span class="tok-n">document</span>.<span class="tok-f">createElement</span>(<span class="tok-s">"script"</span>);
+  <span class="tok-n">script</span>.<span class="tok-n">id</span> = <span class="tok-n">WIDGET_SCRIPT_ID</span>;
+  <span class="tok-n">script</span>.<span class="tok-n">src</span> = <span class="tok-n">WIDGET_SCRIPT_URL</span> + <span class="tok-s">"?v="</span> + <span class="tok-n">Date</span>.<span class="tok-f">now</span>();
+  <span class="tok-n">script</span>.<span class="tok-n">async</span> = <span class="tok-k">true</span>;
+  <span class="tok-n">script</span>.<span class="tok-f">setAttribute</span>(<span class="tok-s">"data-public-key"</span>, <span class="tok-n">WIDGET_PUBLIC_KEY</span>);
+  <span class="tok-n">document</span>.<span class="tok-n">body</span>.<span class="tok-f">appendChild</span>(<span class="tok-n">script</span>);
+}
+
+<span class="tok-k">var</span> <span class="tok-n">openWidget</span> = <span class="tok-f">createWidgetOpener</span>(<span class="tok-n">waitForReihWidget</span>, <span class="tok-s">"[script-embed]"</span>);</code></pre>
               </div>
 
-              <h4>2. Wire up your buttons</h4>
-              <p>The widget exposes itself on <code>window.reihWidget</code> once the script has loaded. Wait for it, then attach handlers.</p>
+              <h4>2. Boot on page load</h4>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">listing.html</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code>&lt;<span class="tok-k">button</span> <span class="tok-n">data-reih</span>=<span class="tok-s">"all"</span>&gt;Reimagine all rooms&lt;/<span class="tok-k">button</span>&gt;
-&lt;<span class="tok-k">button</span> <span class="tok-n">data-reih</span> <span class="tok-n">data-photo</span>=<span class="tok-s">"https://yoursite.com/photos/01.webp"</span>&gt;
-  Reimagine this room
-&lt;/<span class="tok-k">button</span>&gt;
+                <div class="code-header"><span class="code-filename">script-embed.js (DOMContentLoaded)</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-n">document</span>.<span class="tok-f">addEventListener</span>(<span class="tok-s">"DOMContentLoaded"</span>, <span class="tok-k">function</span> () {
+  <span class="tok-f">applyHostCssVars</span>();
+  <span class="tok-k">window</span>.<span class="tok-n">reihWidgetConfig</span> = <span class="tok-f">buildScriptEmbedWidgetConfig</span>();
+  <span class="tok-f">initListingPage</span>({ <span class="tok-n">openWidget</span>: <span class="tok-n">openWidget</span>, <span class="tok-n">logPrefix</span>: <span class="tok-s">"[script-embed]"</span> });
+  <span class="tok-f">loadWidgetScript</span>();
+  <span class="tok-k">window</span>.<span class="tok-f">addEventListener</span>(<span class="tok-s">"beforeunload"</span>, <span class="tok-n">clearReihLoader</span>);
+});</code></pre>
+              </div>
 
-&lt;<span class="tok-k">script</span>&gt;
-  <span class="tok-k">const</span> <span class="tok-n">allMedia</span> = [
-    { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/photos/01.webp"</span> },
-    { <span class="tok-n">image_url</span>: <span class="tok-s">"https://yoursite.com/photos/02.webp"</span> },
-  ];
+              <h4>3. Mount the module in HTML</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">script-embed.html</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code>&lt;<span class="tok-k">section</span> <span class="tok-n">id</span>=<span class="tok-s">"hero"</span> <span class="tok-n">class</span>=<span class="tok-s">"hero"</span>&gt;&lt;/<span class="tok-k">section</span>&gt;
+&lt;<span class="tok-k">div</span> <span class="tok-n">class</span>=<span class="tok-s">"gallery"</span> <span class="tok-n">id</span>=<span class="tok-s">"gallery-grid"</span>&gt;&lt;/<span class="tok-k">div</span>&gt;
+&lt;<span class="tok-k">button</span> <span class="tok-n">type</span>=<span class="tok-s">"button"</span> <span class="tok-n">id</span>=<span class="tok-s">"open-btn"</span>&gt;Open ReimagineHome Widget (all photos)&lt;/<span class="tok-k">button</span>&gt;
 
-  <span class="tok-k">function</span> <span class="tok-f">whenReady</span>(<span class="tok-n">cb</span>) {
-    <span class="tok-k">if</span> (<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) <span class="tok-k">return</span> <span class="tok-f">cb</span>();
-    <span class="tok-f">setTimeout</span>(() =&gt; <span class="tok-f">whenReady</span>(<span class="tok-n">cb</span>), <span class="tok-s">50</span>);
-  }
-
-  <span class="tok-f">whenReady</span>(() =&gt; {
-    <span class="tok-f">document</span>.<span class="tok-f">querySelectorAll</span>(<span class="tok-s">"[data-reih]"</span>).<span class="tok-f">forEach</span>((<span class="tok-n">btn</span>) =&gt; {
-      <span class="tok-n">btn</span>.<span class="tok-f">addEventListener</span>(<span class="tok-s">"click"</span>, <span class="tok-k">async</span> () =&gt; {
-        <span class="tok-k">const</span> <span class="tok-n">one</span> = <span class="tok-n">btn</span>.<span class="tok-n">dataset</span>.<span class="tok-n">photo</span>;
-        <span class="tok-k">const</span> <span class="tok-n">media</span> = <span class="tok-n">one</span> ? [{ <span class="tok-n">image_url</span>: <span class="tok-n">one</span> }] : <span class="tok-n">allMedia</span>;
-        <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>?.();
-        <span class="tok-k">await</span> <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({ <span class="tok-n">media</span>, <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> });
-      });
-    });
-  });
-&lt;/<span class="tok-k">script</span>&gt;</code></pre>
+&lt;<span class="tok-k">script</span> <span class="tok-n">type</span>=<span class="tok-s">"module"</span> <span class="tok-n">src</span>=<span class="tok-s">"script-embed.js"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
               </div>
 
               <div class="callout callout-info">
                 <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                <p><strong>WordPress.</strong> The same pattern works inside a WordPress theme. Drop the script tags in <code>header.php</code> (or via <code>wp_enqueue_script</code>) and the buttons + handler in your single-listing template.</p>
+                <p><strong>CDN pattern.</strong> Set <code>window.reihWidgetConfig</code> on load, inject the script with <code>data-public-key</code>, and use <code>waitForReihWidget()</code> before opening. <code>createWidgetOpener()</code> guards double-clicks. <code>initListingPage()</code> builds the hero FAB, gallery FABs, and bottom open button from shared <code>LISTING_MEDIA</code>.</p>
               </div>
             </div>
           </div>
@@ -1810,130 +2009,265 @@ td code { white-space: nowrap; }
                 <div class="code-header"><span class="code-filename">terminal</span><button class="copy-btn" data-copy>Copy</button></div>
 <pre><code>npm install reimaginehome-widget</code></pre>
               </div>
-
-              <h4>2. Wrap it in an injectable service</h4>
-              <p>Provide the widget as a root-scoped service so it's configured once for the whole app.</p>
+              <p>A <code>postinstall</code> script patches prod URLs in the npm package to dev for local testing:</p>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">src/app/reih.service.ts</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-k">import</span> { <span class="tok-n">Injectable</span>, <span class="tok-n">OnDestroy</span> } <span class="tok-k">from</span> <span class="tok-s">"@angular/core"</span>;
-<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">"reimaginehome-widget"</span>;
-<span class="tok-k">import</span> { <span class="tok-n">environment</span> } <span class="tok-k">from</span> <span class="tok-s">"../environments/environment"</span>;
+                <div class="code-header"><span class="code-filename">scripts/patch-reih-widget-dev.mjs</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-c">/** Patches reimaginehome-widget dist files after npm install */</span>
+<span class="tok-k">for</span> (<span class="tok-k">const</span> [<span class="tok-n">from</span>, <span class="tok-n">to</span>] <span class="tok-k">of</span> [
+  [<span class="tok-s">"https://widget.styldod.com"</span>, <span class="tok-n">WIDGET_DEV_APP_URL</span>],
+  [<span class="tok-n">WIDGET_PROD_API_BASE_URL</span>, <span class="tok-n">WIDGET_DEV_API_BASE_URL</span>],
+  [<span class="tok-s">'return "prod"'</span>, <span class="tok-s">'return "dev"'</span>],
+]) {
+  <span class="tok-n">code</span> = <span class="tok-n">code</span>.<span class="tok-f">replaceAll</span>(<span class="tok-n">from</span>, <span class="tok-n">to</span>);
+}</code></pre>
+              </div>
 
-<span class="tok-k">type</span> <span class="tok-n">Photo</span> = { <span class="tok-n">id</span>: <span class="tok-n">string</span>; <span class="tok-n">publicUrl</span>: <span class="tok-n">string</span>; <span class="tok-n">label</span>?: <span class="tok-n">string</span> };
+              <div class="callout callout-warn">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+                <p><strong>Browser only.</strong> Guard all widget calls with <code>isPlatformBrowser()</code> if your app uses SSR. The widget imports <code>window</code> and must not run during server render.</p>
+              </div>
 
-@<span class="tok-f">Injectable</span>({ <span class="tok-n">providedIn</span>: <span class="tok-s">"root"</span> })
-<span class="tok-k">export class</span> <span class="tok-n">ReihService</span> <span class="tok-k">implements</span> <span class="tok-n">OnDestroy</span> {
-  <span class="tok-f">constructor</span>() {
-    <span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>({
-      <span class="tok-n">public_key</span>: <span class="tok-n">environment</span>.<span class="tok-n">reihKey</span>,
-      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
-      <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
-      <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
-    });
+              <h4>2. Shared widget config</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/app/widget/widget-config.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">export type</span> <span class="tok-n">ReihMediaItem</span> = { <span class="tok-n">image_url</span>: <span class="tok-k">string</span> };
+
+<span class="tok-k">export const</span> <span class="tok-n">WIDGET_PUBLIC_KEY</span> = <span class="tok-s">'ppk_live_xxx'</span>;
+
+<span class="tok-k">export function</span> <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">url</span>: <span class="tok-k">string</span>): <span class="tok-k">string</span> {
+  <span class="tok-k">if</span> (<span class="tok-n">url</span>.<span class="tok-f">startsWith</span>(<span class="tok-s">'/'</span>)) <span class="tok-k">return</span> <span class="tok-s">`${window.location.origin}${url}`</span>;
+  <span class="tok-k">return</span> <span class="tok-n">url</span>;
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">buildNpmWidgetConfigureOptions</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">public_key</span>: <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+    <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(),
+    <span class="tok-n">mode</span>: <span class="tok-s">'simple'</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[reih] onError:'</span>, <span class="tok-n">err</span>),
+    <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onClose'</span>),
+  };
+}
+
+<span class="tok-k">export async function</span> <span class="tok-f">openReihWithMedia</span>(<span class="tok-n">widget</span>, <span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]) {
+  <span class="tok-f">clearReihLoader</span>();
+  <span class="tok-k">await</span> <span class="tok-n">widget</span>.<span class="tok-f">open</span>({
+    <span class="tok-n">media</span>: <span class="tok-n">media</span>.<span class="tok-f">map</span>((<span class="tok-n">item</span>) =&gt; ({ <span class="tok-n">image_url</span>: <span class="tok-f">resolveMediaUrl</span>(<span class="tok-n">item</span>.<span class="tok-n">image_url</span>) })),
+    <span class="tok-n">mode</span>: <span class="tok-s">'simple'</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+  });
+}</code></pre>
+              </div>
+
+              <h4>3. Route-scoped page component</h4>
+              <p>Widget lifecycle lives in a standalone page component — not a global root service. Configure in <code>ngOnInit</code>, destroy in <code>ngOnDestroy</code>.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/app/pages/package-page.component.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">isPlatformBrowser</span> } <span class="tok-k">from</span> <span class="tok-s">'@angular/common'</span>;
+<span class="tok-k">import</span> { <span class="tok-n">Component</span>, <span class="tok-n">OnDestroy</span>, <span class="tok-n">OnInit</span>, <span class="tok-n">PLATFORM_ID</span>, <span class="tok-n">inject</span> } <span class="tok-k">from</span> <span class="tok-s">'@angular/core'</span>;
+<span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">'reimaginehome-widget'</span>;
+<span class="tok-k">import</span> { <span class="tok-n">ListingDemoPageComponent</span> } <span class="tok-k">from</span> <span class="tok-s">'../components/listing-demo-page.component'</span>;
+<span class="tok-k">import</span> {
+  <span class="tok-n">buildNpmWidgetConfigureOptions</span>,
+  <span class="tok-n">clearReihLoader</span>,
+  <span class="tok-n">openReihWithMedia</span>,
+  <span class="tok-n">resolveListingMedia</span>,
+  <span class="tok-k">type</span> <span class="tok-n">ReihMediaItem</span>,
+} <span class="tok-k">from</span> <span class="tok-s">'../widget/widget-config'</span>;
+
+@<span class="tok-f">Component</span>({
+  <span class="tok-n">selector</span>: <span class="tok-s">'app-package-page'</span>,
+  <span class="tok-n">imports</span>: [<span class="tok-n">ListingDemoPageComponent</span>],
+  <span class="tok-n">template</span>: <span class="tok-s">`
+    &lt;app-listing-demo-page
+      (openAll)="handleOpenAll()"
+      (openSingle)="handleOpenSingle($event)"
+    /&gt;
+  `</span>,
+})
+<span class="tok-k">export class</span> <span class="tok-n">PackagePageComponent</span> <span class="tok-k">implements</span> <span class="tok-n">OnInit</span>, <span class="tok-n">OnDestroy</span> {
+  <span class="tok-k">private readonly</span> <span class="tok-n">platformId</span> = <span class="tok-f">inject</span>(<span class="tok-n">PLATFORM_ID</span>);
+  <span class="tok-k">private</span> <span class="tok-n">opening</span> = <span class="tok-k">false</span>;
+
+  <span class="tok-f">ngOnInit</span>(): <span class="tok-k">void</span> {
+    <span class="tok-k">if</span> (!<span class="tok-f">isPlatformBrowser</span>(<span class="tok-k">this</span>.<span class="tok-n">platformId</span>)) <span class="tok-k">return</span>;
+    <span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>(<span class="tok-f">buildNpmWidgetConfigureOptions</span>());
   }
 
-  <span class="tok-k">private</span> <span class="tok-f">toMedia</span>(<span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[]) {
-    <span class="tok-k">return</span> <span class="tok-n">photos</span>.<span class="tok-f">map</span>((<span class="tok-n">p</span>) =&gt; ({
-      <span class="tok-n">image_url</span>: <span class="tok-n">p</span>.<span class="tok-n">publicUrl</span>,
-      ...(<span class="tok-n">p</span>.<span class="tok-n">label</span> ? { <span class="tok-n">label</span>: <span class="tok-n">p</span>.<span class="tok-n">label</span> } : {}),
-    }));
-  }
-
-  <span class="tok-k">async</span> <span class="tok-f">openAll</span>(<span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[]) {
+  <span class="tok-f">ngOnDestroy</span>(): <span class="tok-k">void</span> {
+    <span class="tok-k">if</span> (!<span class="tok-f">isPlatformBrowser</span>(<span class="tok-k">this</span>.<span class="tok-n">platformId</span>)) <span class="tok-k">return</span>;
     <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
-    <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({ <span class="tok-n">media</span>: <span class="tok-k">this</span>.<span class="tok-f">toMedia</span>(<span class="tok-n">photos</span>), <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> });
+    <span class="tok-f">clearReihLoader</span>();
   }
 
-  <span class="tok-k">async</span> <span class="tok-f">openOne</span>(<span class="tok-n">photo</span>: <span class="tok-n">Photo</span>) {
-    <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
-    <span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({ <span class="tok-n">media</span>: <span class="tok-k">this</span>.<span class="tok-f">toMedia</span>([<span class="tok-n">photo</span>]), <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span> });
+  <span class="tok-k">private async</span> <span class="tok-f">openWidget</span>(<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]): <span class="tok-k">Promise</span>&lt;<span class="tok-k">void</span>&gt; {
+    <span class="tok-k">if</span> (<span class="tok-k">this</span>.<span class="tok-n">opening</span>) <span class="tok-k">return</span>;
+    <span class="tok-k">this</span>.<span class="tok-n">opening</span> = <span class="tok-k">true</span>;
+    <span class="tok-k">try</span> {
+      <span class="tok-k">await</span> <span class="tok-f">openReihWithMedia</span>(<span class="tok-n">reihWidget</span>, <span class="tok-n">media</span>);
+    } <span class="tok-k">finally</span> {
+      <span class="tok-k">this</span>.<span class="tok-n">opening</span> = <span class="tok-k">false</span>;
+    }
   }
 
-  <span class="tok-f">ngOnDestroy</span>() {
-    <span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>();
+  <span class="tok-f">handleOpenAll</span>(): <span class="tok-k">void</span> {
+    <span class="tok-k">void this</span>.<span class="tok-f">openWidget</span>(<span class="tok-f">resolveListingMedia</span>());
+  }
+
+  <span class="tok-f">handleOpenSingle</span>(<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>): <span class="tok-k">void</span> {
+    <span class="tok-k">void this</span>.<span class="tok-f">openWidget</span>([<span class="tok-n">media</span>]);
   }
 }</code></pre>
               </div>
 
-              <h4>3. Inject and call from a component</h4>
+              <h4>4. Register the route</h4>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">src/app/listing/listing.component.ts</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-k">import</span> { <span class="tok-n">Component</span>, <span class="tok-n">Input</span> } <span class="tok-k">from</span> <span class="tok-s">"@angular/core"</span>;
-<span class="tok-k">import</span> { <span class="tok-n">ReihService</span> } <span class="tok-k">from</span> <span class="tok-s">"../reih.service"</span>;
-
-@<span class="tok-f">Component</span>({
-  <span class="tok-n">selector</span>: <span class="tok-s">"app-listing"</span>,
-  <span class="tok-n">template</span>: <span class="tok-s">`
-    &lt;button (click)="reih.openAll(photos)"&gt;Reimagine all rooms&lt;/button&gt;
-    &lt;div *ngFor="let p of photos"&gt;
-      &lt;img [src]="p.src" [alt]="p.label || 'Room photo'" /&gt;
-      &lt;button (click)="reih.openOne(p)"&gt;Reimagine this room&lt;/button&gt;
-    &lt;/div&gt;
-  `</span>,
-})
-<span class="tok-k">export class</span> <span class="tok-n">ListingComponent</span> {
-  @<span class="tok-f">Input</span>() <span class="tok-n">photos</span>: <span class="tok-n">any</span>[] = [];
-  <span class="tok-f">constructor</span>(<span class="tok-k">public</span> <span class="tok-n">reih</span>: <span class="tok-n">ReihService</span>) {}
-}</code></pre>
+                <div class="code-header"><span class="code-filename">src/app/app.routes.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">export const</span> <span class="tok-n">routes</span>: <span class="tok-n">Routes</span> = [
+  { <span class="tok-n">path</span>: <span class="tok-s">''</span>, <span class="tok-n">component</span>: <span class="tok-n">HomePageComponent</span> },
+  { <span class="tok-n">path</span>: <span class="tok-s">'package'</span>, <span class="tok-n">component</span>: <span class="tok-n">PackagePageComponent</span> },
+  { <span class="tok-n">path</span>: <span class="tok-s">'script-embed'</span>, <span class="tok-n">component</span>: <span class="tok-n">ScriptEmbedPageComponent</span> },
+];</code></pre>
               </div>
 
               <div class="callout callout-info">
                 <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                <p><strong>Standalone components.</strong> If you're on Angular 15+ with standalone components, the service still works the same — <code>providedIn: "root"</code> handles registration without an <code>NgModule</code>.</p>
+                <p><strong>npm pattern.</strong> Standalone components with <code>ListingDemoPageComponent</code> emitting <code>openAll</code> / <code>openSingle</code>. No pre-open <code>destroy()</code> — only on component destroy. <code>MediaWithWidgetButtonComponent</code> uses <code>media.image_url</code> directly for <code>&lt;img&gt;</code>.</p>
               </div>
             </div>
 
             <!-- =========== Angular × CDN =========== -->
             <div class="method-content" data-method="cdn">
-              <p class="method-note">For Angular, the npm path is the natural fit. Use the CDN path if you have constraints that prevent bundling the package.</p>
+              <p class="method-note">CDN injects <code>widget.js</code> dynamically from a page component — not from <code>index.html</code>. Uses <code>waitForReihWidget()</code> before opening.</p>
 
-              <h4>1. Add the script to index.html</h4>
+              <h4>1. Inject the script on page init</h4>
               <div class="code-block">
-                <div class="code-header"><span class="code-filename">src/index.html</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code>&lt;<span class="tok-k">script</span>&gt;
-  <span class="tok-k">window</span>.<span class="tok-n">reihWidgetConfig</span> = {
-    <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
-    <span class="tok-n">branding</span>: { <span class="tok-n">primary_color</span>: <span class="tok-s">"#1F6F4A"</span>, <span class="tok-n">heading</span>: <span class="tok-s">"Reimagine this space"</span> },
-    <span class="tok-n">sidebar_position</span>: <span class="tok-s">"right"</span>,
-  };
-&lt;/<span class="tok-k">script</span>&gt;
-&lt;<span class="tok-k">script</span> <span class="tok-n">async</span>
-  <span class="tok-n">src</span>=<span class="tok-s">"https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js"</span>
-  <span class="tok-n">data-public-key</span>=<span class="tok-s">"ppk_live_xxx"</span>&gt;&lt;/<span class="tok-k">script</span>&gt;</code></pre>
-              </div>
+                <div class="code-header"><span class="code-filename">src/app/pages/script-embed-page.component.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">isPlatformBrowser</span> } <span class="tok-k">from</span> <span class="tok-s">'@angular/common'</span>;
+<span class="tok-k">import</span> { <span class="tok-n">Component</span>, <span class="tok-n">OnDestroy</span>, <span class="tok-n">OnInit</span>, <span class="tok-n">PLATFORM_ID</span>, <span class="tok-n">inject</span> } <span class="tok-k">from</span> <span class="tok-s">'@angular/core'</span>;
+<span class="tok-k">import</span> {
+  <span class="tok-n">WIDGET_PUBLIC_KEY</span>,
+  <span class="tok-n">WIDGET_SCRIPT_URL</span>,
+  <span class="tok-n">buildScriptEmbedWidgetConfig</span>,
+  <span class="tok-n">clearReihLoader</span>,
+  <span class="tok-n">openReihWithMedia</span>,
+  <span class="tok-n">resolveListingMedia</span>,
+  <span class="tok-n">waitForReihWidget</span>,
+  <span class="tok-k">type</span> <span class="tok-n">ReihMediaItem</span>,
+} <span class="tok-k">from</span> <span class="tok-s">'../widget/widget-config'</span>;
 
-              <h4>2. Wrap the global loader in a service</h4>
-              <div class="code-block">
-                <div class="code-header"><span class="code-filename">src/app/reih.service.ts</span><button class="copy-btn" data-copy>Copy</button></div>
-<pre><code><span class="tok-k">import</span> { <span class="tok-n">Injectable</span>, <span class="tok-n">OnDestroy</span> } <span class="tok-k">from</span> <span class="tok-s">"@angular/core"</span>;
+<span class="tok-k">const</span> <span class="tok-n">WIDGET_SCRIPT_ID</span> = <span class="tok-s">'reih-widget-script'</span>;
 
-<span class="tok-k">declare global</span> {
-  <span class="tok-k">interface</span> <span class="tok-n">Window</span> { <span class="tok-n">reihWidget</span>?: <span class="tok-k">any</span>; }
-}
+@<span class="tok-f">Component</span>({
+  <span class="tok-n">selector</span>: <span class="tok-s">'app-script-embed-page'</span>,
+  <span class="tok-n">imports</span>: [<span class="tok-n">ListingDemoPageComponent</span>],
+  <span class="tok-n">template</span>: <span class="tok-s">`
+    &lt;app-listing-demo-page
+      (openAll)="handleOpenAll()"
+      (openSingle)="handleOpenSingle($event)"
+    /&gt;
+  `</span>,
+})
+<span class="tok-k">export class</span> <span class="tok-n">ScriptEmbedPageComponent</span> <span class="tok-k">implements</span> <span class="tok-n">OnInit</span>, <span class="tok-n">OnDestroy</span> {
+  <span class="tok-k">private readonly</span> <span class="tok-n">platformId</span> = <span class="tok-f">inject</span>(<span class="tok-n">PLATFORM_ID</span>);
+  <span class="tok-k">private</span> <span class="tok-n">opening</span> = <span class="tok-k">false</span>;
 
-<span class="tok-k">type</span> <span class="tok-n">Photo</span> = { <span class="tok-n">id</span>: <span class="tok-n">string</span>; <span class="tok-n">publicUrl</span>: <span class="tok-n">string</span>; <span class="tok-n">label</span>?: <span class="tok-n">string</span> };
+  <span class="tok-f">ngOnInit</span>(): <span class="tok-k">void</span> {
+    <span class="tok-k">if</span> (!<span class="tok-f">isPlatformBrowser</span>(<span class="tok-k">this</span>.<span class="tok-n">platformId</span>)) <span class="tok-k">return</span>;
 
-@<span class="tok-f">Injectable</span>({ <span class="tok-n">providedIn</span>: <span class="tok-s">"root"</span> })
-<span class="tok-k">export class</span> <span class="tok-n">ReihService</span> <span class="tok-k">implements</span> <span class="tok-n">OnDestroy</span> {
-  <span class="tok-k">private async</span> <span class="tok-f">whenReady</span>() {
-    <span class="tok-k">while</span> (!<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) {
-      <span class="tok-k">await new</span> <span class="tok-f">Promise</span>((<span class="tok-n">r</span>) =&gt; <span class="tok-f">setTimeout</span>(<span class="tok-n">r</span>, <span class="tok-s">50</span>));
+    <span class="tok-k">window</span>.<span class="tok-n">reihWidgetConfig</span> = <span class="tok-f">buildScriptEmbedWidgetConfig</span>();
+
+    <span class="tok-k">if</span> (!<span class="tok-n">document</span>.<span class="tok-f">getElementById</span>(<span class="tok-n">WIDGET_SCRIPT_ID</span>)) {
+      <span class="tok-k">const</span> <span class="tok-n">script</span> = <span class="tok-n">document</span>.<span class="tok-f">createElement</span>(<span class="tok-s">'script'</span>);
+      <span class="tok-n">script</span>.<span class="tok-n">id</span> = <span class="tok-n">WIDGET_SCRIPT_ID</span>;
+      <span class="tok-n">script</span>.<span class="tok-n">src</span> = <span class="tok-s">`${WIDGET_SCRIPT_URL}?v=${Date.now()}`</span>;
+      <span class="tok-n">script</span>.<span class="tok-n">async</span> = <span class="tok-k">true</span>;
+      <span class="tok-n">script</span>.<span class="tok-f">setAttribute</span>(<span class="tok-s">'data-public-key'</span>, <span class="tok-n">WIDGET_PUBLIC_KEY</span>);
+      <span class="tok-n">document</span>.<span class="tok-n">body</span>.<span class="tok-f">appendChild</span>(<span class="tok-n">script</span>);
     }
   }
 
-  <span class="tok-k">async</span> <span class="tok-f">openAll</span>(<span class="tok-n">photos</span>: <span class="tok-n">Photo</span>[]) {
-    <span class="tok-k">await this</span>.<span class="tok-f">whenReady</span>();
-    <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">destroy</span>?.();
-    <span class="tok-k">await</span> <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
-      <span class="tok-n">media</span>: <span class="tok-n">photos</span>.<span class="tok-f">map</span>((<span class="tok-n">p</span>) =&gt; ({ <span class="tok-n">image_url</span>: <span class="tok-n">p</span>.<span class="tok-n">publicUrl</span> })),
-      <span class="tok-n">mode</span>: <span class="tok-s">"simple"</span>,
-    });
+  <span class="tok-f">ngOnDestroy</span>(): <span class="tok-k">void</span> {
+    <span class="tok-k">if</span> (<span class="tok-f">isPlatformBrowser</span>(<span class="tok-k">this</span>.<span class="tok-n">platformId</span>)) <span class="tok-f">clearReihLoader</span>();
   }
 
-  <span class="tok-f">ngOnDestroy</span>() {
-    <span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-f">destroy</span>?.();
+  <span class="tok-c">// ... openWidget via waitForReihWidget — see step 2</span>
+}</code></pre>
+              </div>
+
+              <p>Add CDN helpers to <code>widget-config.ts</code>:</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/app/widget/widget-config.ts (CDN additions)</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">export const</span> <span class="tok-n">WIDGET_SCRIPT_URL</span> =
+  <span class="tok-s">'https://cdn.jsdelivr.net/npm/reimaginehome-widget/dist/widget.js'</span>;
+
+<span class="tok-k">export function</span> <span class="tok-f">buildScriptEmbedWidgetConfig</span>() {
+  <span class="tok-k">return</span> {
+    <span class="tok-n">media</span>: <span class="tok-f">resolveListingMedia</span>(),
+    <span class="tok-n">mode</span>: <span class="tok-s">'simple'</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">branding</span>: <span class="tok-f">buildWidgetBranding</span>(),
+    <span class="tok-n">sidebar_position</span>: <span class="tok-s">'right'</span> <span class="tok-k">as const</span>,
+    <span class="tok-n">language</span>: <span class="tok-f">buildWidgetLanguage</span>(),
+    <span class="tok-n">onError</span>: (<span class="tok-n">err</span>) =&gt; <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[reih] onError:'</span>, <span class="tok-n">err</span>),
+    <span class="tok-n">onClose</span>: () =&gt; <span class="tok-n">console</span>.<span class="tok-f">log</span>(<span class="tok-s">'[reih] onClose'</span>),
+  };
+}
+
+<span class="tok-k">export function</span> <span class="tok-f">waitForReihWidget</span>(<span class="tok-n">timeoutMs</span> = <span class="tok-n">30_000</span>) {
+  <span class="tok-k">if</span> (<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>?.<span class="tok-n">open</span>) <span class="tok-k">return</span> <span class="tok-n">Promise</span>.<span class="tok-f">resolve</span>(<span class="tok-k">window</span>.<span class="tok-n">reihWidget</span>);
+  <span class="tok-c">// polls every 50ms, listens for script load, 30s timeout</span>
+}</code></pre>
+              </div>
+
+              <h4>2. Open via the global loader</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/app/pages/script-embed-page.component.ts (open flow)</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">private async</span> <span class="tok-f">openWidget</span>(<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]): <span class="tok-k">Promise</span>&lt;<span class="tok-k">void</span>&gt; {
+  <span class="tok-k">if</span> (<span class="tok-k">this</span>.<span class="tok-n">opening</span>) <span class="tok-k">return</span>;
+  <span class="tok-k">this</span>.<span class="tok-n">opening</span> = <span class="tok-k">true</span>;
+  <span class="tok-k">try</span> {
+    <span class="tok-k">const</span> <span class="tok-n">widget</span> = <span class="tok-k">await</span> <span class="tok-f">waitForReihWidget</span>();
+    <span class="tok-k">await</span> <span class="tok-f">openReihWithMedia</span>(<span class="tok-n">widget</span>, <span class="tok-n">media</span>);
+  } <span class="tok-k">catch</span> (<span class="tok-n">error</span>) {
+    <span class="tok-f">clearReihLoader</span>();
+    <span class="tok-n">console</span>.<span class="tok-f">error</span>(<span class="tok-s">'[script-embed] Widget open failed:'</span>, <span class="tok-n">error</span>);
+  } <span class="tok-k">finally</span> {
+    <span class="tok-k">this</span>.<span class="tok-n">opening</span> = <span class="tok-k">false</span>;
+  }
+}
+
+<span class="tok-f">handleOpenAll</span>(): <span class="tok-k">void</span> {
+  <span class="tok-k">void this</span>.<span class="tok-f">openWidget</span>(<span class="tok-f">resolveListingMedia</span>());
+}
+
+<span class="tok-f">handleOpenSingle</span>(<span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>): <span class="tok-k">void</span> {
+  <span class="tok-k">void this</span>.<span class="tok-f">openWidget</span>([<span class="tok-n">media</span>]);
+}</code></pre>
+              </div>
+
+              <h4>3. Window types</h4>
+              <div class="code-block">
+                <div class="code-header"><span class="code-filename">src/app/types/reih-widget.d.ts</span><button class="copy-btn" data-copy>Copy</button></div>
+<pre><code><span class="tok-k">declare global</span> {
+  <span class="tok-k">interface</span> <span class="tok-n">Window</span> {
+    <span class="tok-n">reihWidgetConfig</span>?: { <span class="tok-n">media</span>: <span class="tok-n">ReihMediaItem</span>[]; <span class="tok-n">mode</span>: <span class="tok-k">string</span>; <span class="tok-c">/* ... */</span> };
+    <span class="tok-n">reihWidget</span>?: {
+      <span class="tok-f">open</span>(<span class="tok-n">options</span>?: <span class="tok-n">Record</span>&lt;<span class="tok-k">string</span>, <span class="tok-k">unknown</span>&gt;): <span class="tok-n">Promise</span>&lt;<span class="tok-k">void</span>&gt;;
+      <span class="tok-f">close</span>(): <span class="tok-k">void</span>;
+      <span class="tok-f">destroy</span>(): <span class="tok-k">void</span>;
+    };
   }
 }</code></pre>
+              </div>
+
+              <div class="callout callout-info">
+                <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p><strong>CDN vs npm.</strong> CDN sets <code>window.reihWidgetConfig</code> and injects the script with <code>data-public-key</code>. npm imports <code>reihWidget</code> directly. Both share <code>ListingDemoPageComponent</code> and route through <code>/package</code> and <code>/script-embed</code>.</p>
               </div>
             </div>
           </div>
