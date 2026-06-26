@@ -122,6 +122,188 @@ button { font-family: inherit; cursor: pointer; }
   max-width: var(--maxw-content);
 }
 
+/* ---------- Overview (platform-style) ---------- */
+.overview-platform-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0 0 28px 0;
+  color: var(--text);
+}
+.overview-quickstart-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.overview-quickstart-copy {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.overview-card-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.25;
+  margin: 0 0 12px 0;
+  color: var(--text);
+}
+.overview-card-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0 0 24px 0;
+}
+.overview-quickstart-copy .cta-row {
+  margin-bottom: 0;
+}
+.overview-code-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.overview-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.overview-code-lang {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.overview-code-panel pre {
+  margin: 0;
+  padding: 18px 16px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.65;
+  flex: 1;
+  background: var(--param-code-bg);
+  color: var(--param-code-text);
+}
+.overview-code-panel code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12.5px;
+  color: inherit;
+}
+.overview-code-panel .tok-k { color: #C586C0; }
+.overview-code-panel .tok-s { color: #CE9178; }
+.overview-code-panel .tok-n { color: #9CDCFE; }
+.overview-code-panel .tok-f { color: #DCDCAA; }
+.overview-code-panel .tok-c { color: #6A9955; font-style: italic; }
+.overview-code-panel .copy-btn {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.7);
+}
+.overview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 22px 28px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 36px;
+}
+.overview-banner-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 0 4px 0;
+  color: var(--text);
+}
+.overview-banner-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0;
+}
+.overview-banner .btn { flex-shrink: 0; }
+.overview-section-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.25;
+  margin: 0 0 20px 0;
+  color: var(--text);
+}
+.overview-paths-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.overview-path-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.overview-path-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 8px rgba(7, 17, 33, 0.06);
+  text-decoration: none;
+}
+[data-theme="dark"] .overview-path-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+.overview-path-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text);
+}
+.overview-path-card p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0 0 16px 0;
+  flex: 1;
+}
+.overview-path-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.overview-path-card p code {
+  font-size: 0.88em;
+}
+@media (max-width: 720px) {
+  .overview-quickstart-card {
+    grid-template-columns: 1fr;
+  }
+  .overview-code-panel {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+  .overview-paths-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- Right rail ---------- */
 .rail {
   position: sticky;
@@ -1005,24 +1187,78 @@ td code { white-space: nowrap; }
     <div class="content">
 
       <!-- ============ OVERVIEW ============ -->
-      <section id="overview">
-        <p class="eyebrow">Enterprise Integration Guide</p>
-        <h1 class="hero-title">A drop-in design tool for <em>any</em> property listing.</h1>
-        <p class="hero-lede">
-          The ReimagineHome widget is a self-contained, drop-in design tool that partners embed into their property-listing experience to let users restyle and redesign the rooms in a listing. A user opens it from a photo, picks a direction, and gets an AI-powered redesign of that space — all without leaving your page. The widget loads on demand as an overlay, talks directly to ReimagineHome's backend, and returns the user to exactly where they were when they're done. The page underneath is never navigated away from or mutated.
-        </p>
-        <div class="cta-row">
-          <a href="#quick-start" class="btn btn-primary">Quick start
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </a>
-          <a href="#framework-guides" class="btn btn-secondary">Framework guides</a>
+      <section id="overview" class="overview">
+        <h1 class="overview-platform-title">ReimagineHome Widget</h1>
+
+        <div class="overview-quickstart-card">
+          <div class="overview-quickstart-copy">
+            <h2 class="overview-card-title">Partner quickstart</h2>
+            <p class="overview-card-desc">
+              Embed a self-contained design tool into your property-listing experience. Users open it from a photo, pick a direction, and get an AI-powered room redesign — all without leaving your page. The widget loads on demand as an overlay and returns them exactly where they were.
+            </p>
+            <div class="cta-row">
+              <a href="#quick-start" class="btn btn-primary">Get started
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+              </a>
+              <a href="mailto:partners@styldod.com" class="btn btn-secondary">Request publishable key</a>
+            </div>
+          </div>
+          <div class="overview-code-panel">
+            <div class="overview-code-header">
+              <span class="overview-code-lang">javascript</span>
+              <button class="copy-btn" data-copy>Copy</button>
+            </div>
+<pre><code><span class="tok-k">import</span> { <span class="tok-n">reihWidget</span> } <span class="tok-k">from</span> <span class="tok-s">'reimaginehome-widget'</span>;
+
+<span class="tok-n">reihWidget</span>.<span class="tok-f">configure</span>({ <span class="tok-n">public_key</span>: <span class="tok-s">'public_key'</span> });
+
+<span class="tok-k">await</span> <span class="tok-n">reihWidget</span>.<span class="tok-f">open</span>({
+  <span class="tok-n">media</span>: [
+    { <span class="tok-n">image_url</span>: <span class="tok-s">'https://yoursite.com/listings/01.webp'</span> },
+  ],
+});</code></pre>
+          </div>
+        </div>
+
+        <div class="overview-banner">
+          <div>
+            <p class="overview-banner-title">Sample integrations for your stack</p>
+            <p class="overview-banner-desc">Reference repos for React, Next.js, Vanilla JS, and Angular — install, configure, open, and cleanup.</p>
+          </div>
+          <a href="#framework-guides" class="btn btn-secondary">View framework guides</a>
+        </div>
+
+        <div class="overview-paths">
+          <h2 class="overview-section-title">Integration paths</h2>
+          <div class="overview-paths-grid">
+            <a href="#quick-start" class="overview-path-card">
+              <h3>npm package</h3>
+              <p>Install <code>reimaginehome-widget</code> for React, Next.js, Vue, or Angular. Import, configure once, and call <code>open()</code> on user action.</p>
+              <span class="overview-path-link">Start with npm ↗</span>
+            </a>
+            <a href="#quick-start" class="overview-path-card">
+              <h3>CDN embed</h3>
+              <p>Add a script tag with your publishable key. Set <code>window.reihWidgetConfig</code> and open via <code>window.reihWidget</code> — no build step.</p>
+              <span class="overview-path-link">Start with CDN ↗</span>
+            </a>
+            <a href="#config-ref" class="overview-path-card">
+              <h3>Configuration reference</h3>
+              <p>Persistent options for <code>reihWidget.configure()</code> — branding, language, theme, sidebar position, and callbacks.</p>
+              <span class="overview-path-link">View configuration ↗</span>
+            </a>
+            <a href="#open-payload" class="overview-path-card">
+              <h3>reihWidget.open() method</h3>
+              <p>Per-launch overrides passed to <code>open()</code>. Pass listing photos as publicly reachable <code>media</code> URLs.</p>
+              <span class="overview-path-link">View method ↗</span>
+            </a>
+          </div>
         </div>
 
       </section>
 
-      <!-- ============ QUICK START ============ -->
+      <!-- ============ INSTALL & USAGE ============ -->
       <section id="quick-start">
-        <h2>Quick start</h2>
+        <h2>Install &amp; usage</h2>
         <p class="section-intro">
           Request a publishable key from <a href="mailto:partners@styldod.com">partners@styldod.com</a>, then follow the install and usage steps below. Pick CDN for a script-tag embed, or npm for React, Next.js, Vue, or Angular.
         </p>
@@ -1455,7 +1691,7 @@ td code { white-space: nowrap; }
   <aside class="rail">
     <p class="rail-label">On this page</p>
     <a href="#overview">Overview</a>
-    <a href="#quick-start">Quick start</a>
+    <a href="#quick-start">Install &amp; usage</a>
     <a href="#usage">Usage</a>
     <a href="#config-ref">Configuration reference</a>
     <a href="#open-payload">reihWidget.open() method</a>
