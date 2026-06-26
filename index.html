@@ -140,6 +140,19 @@ button { font-family: inherit; cursor: pointer; }
   overflow: hidden;
   margin-bottom: 20px;
 }
+.overview-quickstart-card--code-only {
+  grid-template-columns: 1fr;
+}
+.overview-quickstart-card--code-only .overview-code-panel {
+  border-left: 0;
+}
+.overview .hero-lede {
+  max-width: none;
+  margin-bottom: 28px;
+}
+.overview .cta-row {
+  margin-bottom: 36px;
+}
 .overview-quickstart-copy {
   padding: 32px 28px;
   display: flex;
@@ -1094,21 +1107,19 @@ pre::-webkit-scrollbar-track { background: transparent; }
 
       <!-- ============ OVERVIEW ============ -->
       <section id="overview" class="overview">
-        <h1 class="overview-platform-title">ReimagineHome Widget</h1>
+        <p class="eyebrow">Embedded AI visualization for real estate platforms</p>
+        <h1 class="hero-title">Turn listing photos into visual decisions inside your platform.</h1>
+        <p class="hero-lede">
+          ReimagineHome embeds into your listing pages, seeker journeys, agent dashboards, and media workflows, turning existing property photos into structure-safe AI workflows for staging, redesign, decluttering, exterior refresh, landscaping, day-to-dusk, and listing-media enhancement, all without sending users away or asking your team to build the AI experience from scratch.
+        </p>
+        <div class="cta-row">
+          <a href="#quick-start" class="btn btn-primary">Start integration
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#config-ref" class="btn btn-secondary">See configuration options</a>
+        </div>
 
-        <div class="overview-quickstart-card">
-          <div class="overview-quickstart-copy">
-            <h2 class="overview-card-title">Partner quickstart</h2>
-            <p class="overview-card-desc">
-              Embed a self-contained design tool into your property-listing experience. Users open it from a photo, pick a direction, and get an AI-powered room redesign — all without leaving your page. The widget loads on demand as an overlay and returns them exactly where they were.
-            </p>
-            <div class="cta-row">
-              <a href="#quick-start" class="btn btn-primary">Get started
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-              </a>
-              <a href="mailto:partners@styldod.com" class="btn btn-secondary">Request publishable key</a>
-            </div>
-          </div>
+        <div class="overview-quickstart-card overview-quickstart-card--code-only">
           <div class="overview-code-panel">
             <div class="overview-code-header">
               <span class="overview-code-lang">javascript</span>
