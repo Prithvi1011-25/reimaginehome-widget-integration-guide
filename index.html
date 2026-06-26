@@ -107,9 +107,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Layout ---------- */
 .layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 200px;
-  max-width: 1100px;
+  max-width: 860px;
   margin: 0 auto;
 }
 
@@ -238,59 +236,6 @@ button { font-family: inherit; cursor: pointer; }
   margin: 0;
 }
 .overview-banner .btn { flex-shrink: 0; }
-.overview-section-title {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 22px;
-  line-height: 1.25;
-  margin: 0 0 20px 0;
-  color: var(--text);
-}
-.overview-paths-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.overview-path-card {
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.overview-path-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: 0 2px 8px rgba(7, 17, 33, 0.06);
-  text-decoration: none;
-}
-[data-theme="dark"] .overview-path-card:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
-}
-.overview-path-card h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 8px 0;
-  color: var(--text);
-}
-.overview-path-card p {
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--text-muted);
-  margin: 0 0 16px 0;
-  flex: 1;
-}
-.overview-path-link {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
-}
-.overview-path-card p code {
-  font-size: 0.88em;
-}
 @media (max-width: 720px) {
   .overview-quickstart-card {
     grid-template-columns: 1fr;
@@ -299,44 +244,7 @@ button { font-family: inherit; cursor: pointer; }
     border-left: 0;
     border-top: 1px solid var(--border);
   }
-  .overview-paths-grid {
-    grid-template-columns: 1fr;
-  }
 }
-
-/* ---------- Right rail ---------- */
-.rail {
-  position: sticky;
-  top: 32px;
-  height: calc(100vh - 32px);
-  overflow-y: auto;
-  padding: 56px 24px 48px 16px;
-  border-left: 1px solid var(--border);
-}
-.rail-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-  margin: 0 0 12px 0;
-}
-.rail a {
-  display: block;
-  padding: 4px 0;
-  font-size: 13px;
-  color: var(--text-muted);
-  border-left: 2px solid transparent;
-  padding-left: 12px;
-  margin-left: -2px;
-}
-.rail a:hover { color: var(--text); text-decoration: none; }
-.rail a.active {
-  color: var(--accent-strong);
-  border-left-color: var(--accent);
-  font-weight: 500;
-}
-[data-theme="dark"] .rail a.active { color: var(--accent); }
 
 /* ---------- Typography ---------- */
 .eyebrow {
@@ -1139,8 +1047,6 @@ td code { white-space: nowrap; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; }
-  .rail { display: none; }
   .main { padding: 40px 24px 96px 24px; }
 }
 @media (max-width: 600px) {
@@ -1153,12 +1059,12 @@ td code { white-space: nowrap; }
 }
 
 /* ---------- Scrollbar polish ---------- */
-.rail::-webkit-scrollbar, pre::-webkit-scrollbar { width: 8px; height: 8px; }
-.rail::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb {
+pre::-webkit-scrollbar { width: 8px; height: 8px; }
+pre::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: 4px;
 }
-.rail::-webkit-scrollbar-track, pre::-webkit-scrollbar-track { background: transparent; }
+pre::-webkit-scrollbar-track { background: transparent; }
 
 /* Focus ring */
 :focus-visible {
@@ -1226,32 +1132,6 @@ td code { white-space: nowrap; }
             <p class="overview-banner-desc">Reference repos for React, Next.js, Vanilla JS, and Angular — install, configure, open, and cleanup.</p>
           </div>
           <a href="#framework-guides" class="btn btn-secondary">View framework guides</a>
-        </div>
-
-        <div class="overview-paths">
-          <h2 class="overview-section-title">Integration paths</h2>
-          <div class="overview-paths-grid">
-            <a href="#quick-start" class="overview-path-card">
-              <h3>npm package</h3>
-              <p>Install <code>reimaginehome-widget</code> for React, Next.js, Vue, or Angular. Import, configure once, and call <code>open()</code> on user action.</p>
-              <span class="overview-path-link">Start with npm ↗</span>
-            </a>
-            <a href="#quick-start" class="overview-path-card">
-              <h3>CDN embed</h3>
-              <p>Add a script tag with your publishable key. Set <code>window.reihWidgetConfig</code> and open via <code>window.reihWidget</code> — no build step.</p>
-              <span class="overview-path-link">Start with CDN ↗</span>
-            </a>
-            <a href="#config-ref" class="overview-path-card">
-              <h3>Configuration reference</h3>
-              <p>Persistent options for <code>reihWidget.configure()</code> — branding, language, theme, sidebar position, and callbacks.</p>
-              <span class="overview-path-link">View configuration ↗</span>
-            </a>
-            <a href="#open-payload" class="overview-path-card">
-              <h3>reihWidget.open() method</h3>
-              <p>Per-launch overrides passed to <code>open()</code>. Pass listing photos as publicly reachable <code>media</code> URLs.</p>
-              <span class="overview-path-link">View method ↗</span>
-            </a>
-          </div>
         </div>
 
       </section>
@@ -1687,18 +1567,6 @@ td code { white-space: nowrap; }
     </div>
   </main>
 
-  <!-- ==================== RIGHT RAIL ==================== -->
-  <aside class="rail">
-    <p class="rail-label">On this page</p>
-    <a href="#overview">Overview</a>
-    <a href="#quick-start">Install &amp; usage</a>
-    <a href="#usage">Usage</a>
-    <a href="#config-ref">Configuration reference</a>
-    <a href="#open-payload">reihWidget.open() method</a>
-    <a href="#framework-guides">Framework guides</a>
-    <a href="#branding">Styling &amp; branding</a>
-  </aside>
-
 </div>
 
 <script>
@@ -1736,24 +1604,6 @@ td code { white-space: nowrap; }
       });
     });
   });
-})();
-
-// -------- Scroll spy (rail) --------
-(function() {
-  const sections = Array.from(document.querySelectorAll('main section[id]'));
-  const railLinks = document.querySelectorAll('.rail a[href^="#"]');
-  if (!sections.length || !railLinks.length) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        railLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
-      }
-    });
-  }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
-
-  sections.forEach(s => observer.observe(s));
 })();
 </script>
 
