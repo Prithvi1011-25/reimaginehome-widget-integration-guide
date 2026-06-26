@@ -1543,18 +1543,18 @@ pre::-webkit-scrollbar-track { background: transparent; }
 
         <h3>What you can customize</h3>
         <ul>
-          <li><strong>Primary color</strong> — used for buttons, highlights, and focus states. Pass any hex value that meets WCAG AA contrast with white text.</li>
+          <li><strong>Primary color</strong> — buttons, highlights, and focus states. Pass any hex value that meets WCAG AA contrast with white text.</li>
+          <li><strong>Secondary color</strong> — accents, borders, and supporting UI elements via <code>branding.colors.secondary</code>.</li>
+          <li><strong>Font</strong> — widget typography via <code>branding.typography.font_family</code> and optional <code>font_url</code> for custom or Google Fonts.</li>
           <li><strong>Heading text</strong> — the headline at the top of the widget. Defaults to <span class="placeholder">"Reimagine this space"</span>.</li>
           <li><strong>Co-brand logo</strong> — shown alongside the ReimagineHome mark in the header. SVG preferred, PNG accepted.</li>
-          <li><strong>Language</strong> — initial language selection. Users can switch inside the widget.</li>
+          <li><strong>Language</strong> — languages available in the in-widget switcher. Users can change selection inside the widget.</li>
+          <li><strong>Style choices</strong> — the AI workflow options users see after opening the widget (staging, redesign, decluttering, exterior refresh, landscaping, day-to-dusk, and more), driven by room-type detection and your configured mode.</li>
         </ul>
 
-        <h3>What you cannot customize</h3>
-        <ul>
-          <li>The widget's layout, typography, or component structure.</li>
-          <li>The ReimagineHome attribution mark.</li>
-          <li>The style-choice UI generated from room-type detection.</li>
-        </ul>
+        <p class="section-intro">
+          Need something beyond this list? We're open to additional branding and workflow customization for enterprise partners — reach out at <a href="mailto:partners@styldod.com">partners@styldod.com</a> and we'll work through what's possible for your platform.
+        </p>
 
         <h3>Example</h3>
         <div class="usage-code">
@@ -1563,9 +1563,15 @@ pre::-webkit-scrollbar-track { background: transparent; }
   <span class="tok-n">public_key</span>: <span class="tok-s">'public_key'</span>,
   <span class="tok-n">branding</span>: {
     <span class="tok-n">logo</span>: <span class="tok-s">'https://yoursite.com/logo.svg'</span>,
+    <span class="tok-n">heading</span>: <span class="tok-s">'Restyle this room'</span>,
     <span class="tok-n">colors</span>: {
       <span class="tok-n">primary</span>: <span class="tok-s">'#1F6F4A'</span>,
+      <span class="tok-n">secondary</span>: <span class="tok-s">'#03A1AC'</span>,
       <span class="tok-n">text_primary</span>: <span class="tok-s">'#071121'</span>,
+    },
+    <span class="tok-n">typography</span>: {
+      <span class="tok-n">font_family</span>: <span class="tok-s">"'Inter', sans-serif"</span>,
+      <span class="tok-n">font_url</span>: <span class="tok-s">'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap'</span>,
     },
   },
   <span class="tok-n">language</span>: [
