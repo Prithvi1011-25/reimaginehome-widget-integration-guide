@@ -1044,6 +1044,10 @@ td code { white-space: nowrap; }
   background: rgba(255,255,255,0.14);
   color: #fff;
 }
+.usage-code .copy-btn.copied,
+.overview-code-panel .copy-btn.copied {
+  color: var(--accent);
+}
 
 /* ---------- Footer ---------- */
 .footer {
@@ -1604,15 +1608,57 @@ pre::-webkit-scrollbar-track { background: transparent; }
 
 // -------- Copy buttons --------
 (function() {
+  const COPY_CONTAINERS = '.code-block, .usage-code, .overview-code-panel, .param-code';
+
+  function copyFallback(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+
+  function getCodeText(btn) {
+    const container = btn.closest(COPY_CONTAINERS);
+    if (!container) return '';
+    const pre = container.querySelector('pre');
+    return pre ? pre.innerText.trim() : '';
+  }
+
+  function showCopied(btn) {
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  }
+
   document.querySelectorAll('[data-copy]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const block = btn.closest('.code-block');
-      const code = block.querySelector('pre').innerText;
-      navigator.clipboard.writeText(code).then(() => {
-        btn.textContent = 'Copied';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
-      });
+    btn.addEventListener('click', async () => {
+      const code = getCodeText(btn);
+      if (!code) return;
+
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(code);
+        } else {
+          copyFallback(code);
+        }
+        showCopied(btn);
+      } catch {
+        try {
+          copyFallback(code);
+          showCopied(btn);
+        } catch {
+          btn.textContent = 'Failed';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+        }
+      }
     });
   });
 })();
